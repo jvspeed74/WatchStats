@@ -1,10 +1,9 @@
-﻿using System;
-using WatchStats;
+﻿using WatchStats;
 using WatchStats.Core;
 
 // Host wiring for WatchStats
 
-int exitCode = 0;
+int exitCode;
 
 if (!CliParser.TryParse(args, out var config, out var parseError))
 {
@@ -20,12 +19,12 @@ if (!CliParser.TryParse(args, out var config, out var parseError))
 }
 
 BoundedEventBus<FsEvent>? bus = null;
-FileStateRegistry? registry = null;
-FileTailer? tailer = null;
-FileProcessor? processor = null;
-WorkerStats[]? workerStats = null;
+FileStateRegistry? registry;
+FileTailer? tailer;
+FileProcessor? processor;
+WorkerStats[]? workerStats;
 ProcessingCoordinator? coordinator = null;
-WatchStats.Core.Reporter? reporter = null;
+Reporter? reporter = null;
 FilesystemWatcherAdapter? watcher = null;
 
 try
@@ -43,23 +42,23 @@ try
     }
 
     coordinator = new ProcessingCoordinator(bus, registry, processor, workerStats, workerCount: config.Workers);
-    reporter = new WatchStats.Core.Reporter(workerStats, bus, config.TopK, config.ReportIntervalSeconds);
+    reporter = new Reporter(workerStats, bus, config.TopK, config.ReportIntervalSeconds);
     watcher = new FilesystemWatcherAdapter(config.WatchPath, bus);
 
     // register shutdown handlers
-    Console.CancelKeyPress += (s, e) =>
+    Console.CancelKeyPress += (_, e) =>
     {
         e.Cancel = true;
         HostWiring.TriggerShutdown(bus, watcher, coordinator, reporter);
     };
-    AppDomain.CurrentDomain.ProcessExit += (s, e) => HostWiring.TriggerShutdown(bus, watcher, coordinator, reporter);
+    AppDomain.CurrentDomain.ProcessExit += (_, _) => HostWiring.TriggerShutdown(bus, watcher, coordinator, reporter);
 
     // start components in order
     coordinator.Start();
     reporter.Start();
     watcher.Start();
 
-    Console.WriteLine("Started: " + config.ToString());
+    Console.WriteLine("Started: " + config);
 
     // wait until shutdown is requested
     HostWiring.WaitForShutdown();
