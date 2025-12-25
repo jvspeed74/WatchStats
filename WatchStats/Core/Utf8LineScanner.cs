@@ -4,17 +4,29 @@ namespace WatchStats.Core
 {
     // PartialLineBuffer holds carryover bytes for a single file between chunk scans.
     // Fields are public to match the doc's simple data-shape.
+    /// <summary>
+    /// Holds carry-over bytes for a single file between chunk scans.
+    /// The struct exposes a simple data shape (public fields) for performance and interoperability.
+    /// </summary>
     public struct PartialLineBuffer
     {
-        // underlying buffer
+        /// <summary>
+        /// Underlying buffer that stores appended bytes. May be <c>null</c> when empty.
+        /// </summary>
         public byte[] Buffer;
 
-        // number of valid bytes in Buffer (0..Buffer.Length)
+        /// <summary>
+        /// Number of valid bytes in <see cref="Buffer"/> (0..Buffer.Length).
+        /// </summary>
         public int Length;
 
         private const int InitialSize = 256;
 
-        // Return a readonly span of the valid bytes
+        /// <summary>
+        /// Returns a readonly span of the valid bytes currently stored in the buffer.
+        /// If the buffer is empty returns <see cref="ReadOnlySpan{Byte}.Empty"/>.
+        /// </summary>
+        /// <returns>A <see cref="ReadOnlySpan{Byte}"/> representing the valid bytes.</returns>
         public ReadOnlySpan<byte> AsSpan()
         {
             if (Buffer == null || Length == 0)
@@ -22,13 +34,18 @@ namespace WatchStats.Core
             return new ReadOnlySpan<byte>(Buffer, 0, Length);
         }
 
-        // Clear the buffer (does not free the array)
+        /// <summary>
+        /// Clears the buffer by resetting <see cref="Length"/> to zero. The underlying array is not freed.
+        /// </summary>
         public void Clear()
         {
             Length = 0;
         }
 
-        // Append src into the buffer, growing by doubling when needed.
+        /// <summary>
+        /// Appends the provided source bytes into the buffer, growing the internal array by doubling when needed.
+        /// </summary>
+        /// <param name="src">The source bytes to append. If empty, the method returns immediately.</param>
         public void Append(ReadOnlySpan<byte> src)
         {
             if (src.Length == 0)
@@ -60,10 +77,20 @@ namespace WatchStats.Core
         }
     }
 
+    /// <summary>
+    /// Utilities for scanning UTF-8 byte chunks and extracting newline-delimited lines.
+    /// </summary>
     public static class Utf8LineScanner
     {
-        // Scan processes `carry + chunk` and invokes onLine for each complete line (without newline, and trimming CR).
-        // Any trailing incomplete bytes are saved back into `carry`.
+        /// <summary>
+        /// Scans the concatenation of <paramref name="carry"/> and <paramref name="chunk"/>, invokes <paramref name="onLine"/> for each complete
+        /// line found (the line passed to the callback does not include the newline character and any trailing CR is trimmed),
+        /// and stores any trailing incomplete bytes back into <paramref name="carry"/>.
+        /// </summary>
+        /// <param name="chunk">The incoming byte chunk to scan.</param>
+        /// <param name="carry">A per-file carry buffer that contains previously seen but incomplete line bytes; updated with any remaining trailing partial bytes.</param>
+        /// <param name="onLine">Callback invoked for each complete line. The provided <see cref="ReadOnlySpan{Byte}"/> contains the raw bytes of the line (no CR/LF).</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="onLine"/> is <c>null</c>.</exception>
         public static void Scan(ReadOnlySpan<byte> chunk, ref PartialLineBuffer carry,
             Action<ReadOnlySpan<byte>> onLine)
         {
