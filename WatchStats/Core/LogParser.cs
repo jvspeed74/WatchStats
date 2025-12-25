@@ -39,7 +39,11 @@ namespace WatchStats.Core
             "yyyy-MM-ddTHH:mm:ss.fffffffK"
         };
 
-        private static ReadOnlySpan<byte> LatencyPrefix => new byte[] { (byte)'l', (byte)'a', (byte)'t', (byte)'e', (byte)'n', (byte)'c', (byte)'y', (byte)'_', (byte)'m', (byte)'s', (byte)'=' };
+        private static ReadOnlySpan<byte> LatencyPrefix => new byte[]
+        {
+            (byte)'l', (byte)'a', (byte)'t', (byte)'e', (byte)'n', (byte)'c', (byte)'y', (byte)'_', (byte)'m',
+            (byte)'s', (byte)'='
+        };
 
         public static bool TryParse(ReadOnlySpan<byte> line, out ParsedLogLine parsed)
         {
@@ -55,11 +59,13 @@ namespace WatchStats.Core
             var timestampBytes = line.Slice(0, s1);
             var levelBytes = line.Slice(s1 + 1, s2 - (s1 + 1));
             int messageStart = s2 + 1;
-            ReadOnlySpan<byte> messageSpan = messageStart < line.Length ? line.Slice(messageStart) : ReadOnlySpan<byte>.Empty;
+            ReadOnlySpan<byte> messageSpan =
+                messageStart < line.Length ? line.Slice(messageStart) : ReadOnlySpan<byte>.Empty;
 
             // 2. Parse timestamp (strict ISO-8601)
             string tsString = Encoding.UTF8.GetString(timestampBytes);
-            if (!DateTimeOffset.TryParseExact(tsString, IsoFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dto))
+            if (!DateTimeOffset.TryParseExact(tsString, IsoFormats, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dto))
             {
                 parsed = default;
                 return false;
@@ -102,7 +108,12 @@ namespace WatchStats.Core
                         if (b < (byte)'0' || b > (byte)'9') break;
                         any = true;
                         acc = acc * 10 + (b - (byte)'0');
-                        if (acc > int.MaxValue) { any = false; break; }
+                        if (acc > int.MaxValue)
+                        {
+                            any = false;
+                            break;
+                        }
+
                         i++;
                     }
 
@@ -119,7 +130,9 @@ namespace WatchStats.Core
 
         private static int IndexOfByte(ReadOnlySpan<byte> span, byte value)
         {
-            for (int i = 0; i < span.Length; i++) if (span[i] == value) return i;
+            for (int i = 0; i < span.Length; i++)
+                if (span[i] == value)
+                    return i;
             return -1;
         }
 
@@ -147,6 +160,7 @@ namespace WatchStats.Core
                 if (lb >= (byte)'a' && lb <= (byte)'z') lb = (byte)(lb - 32);
                 if (lb != (byte)rc) return false;
             }
+
             return true;
         }
 
@@ -164,10 +178,16 @@ namespace WatchStats.Core
                     byte b = needle[j];
                     // case-insensitive match for latency prefix (we stored lower-case)
                     if (a >= (byte)'A' && a <= (byte)'Z') a = (byte)(a + 32);
-                    if (a != b) { ok = false; break; }
+                    if (a != b)
+                    {
+                        ok = false;
+                        break;
+                    }
                 }
+
                 if (ok) return i;
             }
+
             return -1;
         }
     }

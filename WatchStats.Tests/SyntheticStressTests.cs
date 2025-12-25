@@ -30,7 +30,8 @@ namespace WatchStats.Tests
             var workerStats = new WorkerStats[workers];
             for (int i = 0; i < workers; i++) workerStats[i] = new WorkerStats();
 
-            var coord = new ProcessingCoordinator(bus, registry, fakeProcessor, workerStats, workerCount: workers, dequeueTimeoutMs: 50);
+            var coord = new ProcessingCoordinator(bus, registry, fakeProcessor, workerStats, workerCount: workers,
+                dequeueTimeoutMs: 50);
             coord.Start();
 
             var cts = new CancellationTokenSource(runMs);

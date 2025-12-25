@@ -18,7 +18,13 @@ namespace WatchStats.Tests
 
         public void Dispose()
         {
-            try { Directory.Delete(_dir, true); } catch { }
+            try
+            {
+                Directory.Delete(_dir, true);
+            }
+            catch
+            {
+            }
         }
 
         private string MakePath(string name) => Path.Combine(_dir, name);
@@ -83,8 +89,8 @@ namespace WatchStats.Tests
             File.Delete(p);
 
             var status = tailer.ReadAppended(p, ref offset, _ => { }, out var tot2);
-            Assert.True(status == TailReadStatus.FileNotFound || status == TailReadStatus.NoData || status == TailReadStatus.TruncatedReset);
+            Assert.True(status == TailReadStatus.FileNotFound || status == TailReadStatus.NoData ||
+                        status == TailReadStatus.TruncatedReset);
         }
     }
 }
-

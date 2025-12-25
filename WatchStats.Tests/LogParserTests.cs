@@ -14,7 +14,7 @@ namespace WatchStats.Tests
         {
             var line = AsUtf8("2023-01-02T03:04:05Z INFO request_started latency_ms=123");
             Assert.True(LogParser.TryParse(line, out var parsed));
-            Assert.Equal(new DateTimeOffset(2023,1,2,3,4,5, TimeSpan.Zero), parsed.Timestamp);
+            Assert.Equal(new DateTimeOffset(2023, 1, 2, 3, 4, 5, TimeSpan.Zero), parsed.Timestamp);
             Assert.Equal(LogLevel.Info, parsed.Level);
             Assert.Equal("request_started", Encoding.UTF8.GetString(parsed.MessageKey));
             Assert.Equal(123, parsed.LatencyMs);
@@ -68,12 +68,11 @@ namespace WatchStats.Tests
             var off = AsUtf8("2023-01-02T03:04:05-06:00 INFO offmsg");
 
             Assert.True(LogParser.TryParse(z, out var pz));
-            Assert.Equal(new DateTimeOffset(2023,1,2,3,4,5, TimeSpan.Zero), pz.Timestamp);
+            Assert.Equal(new DateTimeOffset(2023, 1, 2, 3, 4, 5, TimeSpan.Zero), pz.Timestamp);
 
             Assert.True(LogParser.TryParse(off, out var po));
             // adjusted to UTC
-            Assert.Equal(new DateTimeOffset(2023,1,2,9,4,5, TimeSpan.Zero), po.Timestamp);
+            Assert.Equal(new DateTimeOffset(2023, 1, 2, 9, 4, 5, TimeSpan.Zero), po.Timestamp);
         }
     }
 }
-

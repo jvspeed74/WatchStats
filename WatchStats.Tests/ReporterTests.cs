@@ -14,7 +14,8 @@ namespace WatchStats.Tests
             // Arrange
             var bus = new BoundedEventBus<FsEvent>(10);
             // publish some events to bump published counter
-            for (int i = 0; i < 5; i++) bus.Publish(new FsEvent(FsEventKind.Created, $"/tmp/{i}.log", null, DateTimeOffset.UtcNow, true));
+            for (int i = 0; i < 5; i++)
+                bus.Publish(new FsEvent(FsEventKind.Created, $"/tmp/{i}.log", null, DateTimeOffset.UtcNow, true));
 
             var workers = new WorkerStats[2];
             for (int i = 0; i < workers.Length; i++) workers[i] = new WorkerStats();
@@ -31,7 +32,11 @@ namespace WatchStats.Tests
             workers[1].Active.RecordLatency(100);
 
             // cause swap so Inactive buffers contain our data
-            foreach (var w in workers) { w.RequestSwap(); w.AcknowledgeSwapIfRequested(); }
+            foreach (var w in workers)
+            {
+                w.RequestSwap();
+                w.AcknowledgeSwapIfRequested();
+            }
 
             var reporter = new Reporter(workers, bus, topK: 2, intervalSeconds: 1);
 

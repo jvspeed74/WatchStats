@@ -22,7 +22,8 @@ namespace WatchStats.Tests
         public void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024)
         {
             // Check not re-entrant for same path
-            if (!_inProgress.TryAdd(path, 1)) throw new InvalidOperationException("Concurrent processing for same path");
+            if (!_inProgress.TryAdd(path, 1))
+                throw new InvalidOperationException("Concurrent processing for same path");
             try
             {
                 Calls.Add(path);
@@ -45,7 +46,8 @@ namespace WatchStats.Tests
             var fake = new FakeProcessor(50); // simulate work
             var workerStats = new WorkerStats[] { new WorkerStats() };
 
-            var coord = new ProcessingCoordinator(bus, registry, fake, workerStats, workerCount:1, dequeueTimeoutMs:50);
+            var coord = new ProcessingCoordinator(bus, registry, fake, workerStats, workerCount: 1,
+                dequeueTimeoutMs: 50);
 
             coord.Start();
 
@@ -73,7 +75,8 @@ namespace WatchStats.Tests
             var registry = new FileStateRegistry();
             var fake = new FakeProcessor(5);
             var workerStats = new WorkerStats[] { new WorkerStats() };
-            var coord = new ProcessingCoordinator(bus, registry, fake, workerStats, workerCount:1, dequeueTimeoutMs:50);
+            var coord = new ProcessingCoordinator(bus, registry, fake, workerStats, workerCount: 1,
+                dequeueTimeoutMs: 50);
 
             coord.Start();
 
@@ -97,12 +100,14 @@ namespace WatchStats.Tests
             var registry = new FileStateRegistry();
             var fake = new FakeProcessor(10);
             var workerStats = new WorkerStats[] { new WorkerStats(), new WorkerStats() };
-            var coord = new ProcessingCoordinator(bus, registry, fake, workerStats, workerCount:2, dequeueTimeoutMs:50);
+            var coord = new ProcessingCoordinator(bus, registry, fake, workerStats, workerCount: 2,
+                dequeueTimeoutMs: 50);
 
             coord.Start();
 
             string path = "file3.log";
-            for (int i = 0; i < 200; i++) bus.Publish(new FsEvent(FsEventKind.Modified, path, null, DateTimeOffset.UtcNow, Processable: true));
+            for (int i = 0; i < 200; i++)
+                bus.Publish(new FsEvent(FsEventKind.Modified, path, null, DateTimeOffset.UtcNow, Processable: true));
 
             Thread.Sleep(1000);
             coord.Stop();

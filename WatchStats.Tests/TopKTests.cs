@@ -10,14 +10,14 @@ namespace WatchStats.Tests
         [Fact]
         public void Empty_ReturnsEmpty()
         {
-            var res = TopK.ComputeTopK(new Dictionary<string,int>(), 10);
+            var res = TopK.ComputeTopK(new Dictionary<string, int>(), 10);
             Assert.Empty(res);
         }
 
         [Fact]
         public void KGreaterThanCount_ReturnsAllSorted()
         {
-            var d = new Dictionary<string,int>
+            var d = new Dictionary<string, int>
             {
                 ["b"] = 2,
                 ["a"] = 3,
@@ -26,15 +26,15 @@ namespace WatchStats.Tests
 
             var res = TopK.ComputeTopK(d, 10);
             Assert.Equal(3, res.Count);
-            Assert.Equal(("a",3), res[0]);
-            Assert.Equal(("b",2), res[1]);
-            Assert.Equal(("c",1), res[2]);
+            Assert.Equal(("a", 3), res[0]);
+            Assert.Equal(("b", 2), res[1]);
+            Assert.Equal(("c", 1), res[2]);
         }
 
         [Fact]
         public void TieBreak_IsOrdinalAscending()
         {
-            var d = new Dictionary<string,int>
+            var d = new Dictionary<string, int>
             {
                 ["b"] = 5,
                 ["A"] = 5,
@@ -51,7 +51,7 @@ namespace WatchStats.Tests
         [Fact]
         public void OrdersByCountDescending()
         {
-            var d = new Dictionary<string,int>
+            var d = new Dictionary<string, int>
             {
                 ["k1"] = 1,
                 ["k2"] = 10,
@@ -60,9 +60,8 @@ namespace WatchStats.Tests
 
             var res = TopK.ComputeTopK(d, 2);
             Assert.Equal(2, res.Count);
-            Assert.Equal(("k2",10), res[0]);
-            Assert.Equal(("k3",5), res[1]);
+            Assert.Equal(("k2", 10), res[0]);
+            Assert.Equal(("k3", 5), res[1]);
         }
     }
 }
-

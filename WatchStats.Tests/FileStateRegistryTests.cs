@@ -65,10 +65,7 @@ namespace WatchStats.Tests
             string path = "/tmp/concurrent.log";
 
             FileState[] results = new FileState[16];
-            Parallel.For(0, 16, i =>
-            {
-                results[i] = reg.GetOrCreate(path);
-            });
+            Parallel.For(0, 16, i => { results[i] = reg.GetOrCreate(path); });
 
             // all should point to the same instance
             var first = results[0];
@@ -83,4 +80,3 @@ namespace WatchStats.Tests
         }
     }
 }
-

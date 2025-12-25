@@ -16,7 +16,13 @@ namespace WatchStats.Tests
 
         public void Dispose()
         {
-            try { Directory.Delete(_tmpDir, true); } catch { }
+            try
+            {
+                Directory.Delete(_tmpDir, true);
+            }
+            catch
+            {
+            }
         }
 
         [Fact]
@@ -43,8 +49,8 @@ namespace WatchStats.Tests
         [InlineData(1, 1, 1, 0)]
         public void Constructor_InvalidNumbers_Throws(int workers, int queueCap, int reportSecs, int topk)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new WatchStats.AppConfig(_tmpDir, workers, queueCap, reportSecs, topk));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new WatchStats.AppConfig(_tmpDir, workers, queueCap, reportSecs, topk));
         }
     }
 }
-

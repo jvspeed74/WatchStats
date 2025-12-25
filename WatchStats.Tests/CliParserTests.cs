@@ -16,7 +16,13 @@ namespace WatchStats.Tests
 
         public void Dispose()
         {
-            try { Directory.Delete(_tmpDir, true); } catch { }
+            try
+            {
+                Directory.Delete(_tmpDir, true);
+            }
+            catch
+            {
+            }
         }
 
         [Fact]
@@ -36,7 +42,8 @@ namespace WatchStats.Tests
         [Fact]
         public void Parse_AllOptions_Works()
         {
-            var args = new string[] { _tmpDir, "--workers", "3", "--queue-capacity=500", "--report-interval-seconds", "5", "--topk", "7" };
+            var args = new string[]
+                { _tmpDir, "--workers", "3", "--queue-capacity=500", "--report-interval-seconds", "5", "--topk", "7" };
             Assert.True(WatchStats.CliParser.TryParse(args, out var cfg, out var err));
             Assert.Null(err);
             Assert.NotNull(cfg);
@@ -63,4 +70,3 @@ namespace WatchStats.Tests
         }
     }
 }
-

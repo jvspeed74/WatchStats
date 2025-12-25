@@ -121,7 +121,8 @@ namespace WatchStats.Core
             int gen1 = GC.CollectionCount(1);
             int gen2 = GC.CollectionCount(2);
 
-            Console.WriteLine($"[REPORT] elapsed={elapsedSeconds:0.00}s lines={snapshot.LinesProcessed} malformed={snapshot.MalformedLines} fs-events={snapshot.FsCreated + snapshot.FsModified + snapshot.FsDeleted + snapshot.FsRenamed} busDropped={snapshot.BusDropped} busPublished={snapshot.BusPublished} busDepth={snapshot.BusDepth} allocated={allocatedNow} gen0={gen0} gen1={gen1} gen2={gen2}");
+            Console.WriteLine(
+                $"[REPORT] elapsed={elapsedSeconds:0.00}s lines={snapshot.LinesProcessed} malformed={snapshot.MalformedLines} fs-events={snapshot.FsCreated + snapshot.FsModified + snapshot.FsDeleted + snapshot.FsRenamed} busDropped={snapshot.BusDropped} busPublished={snapshot.BusPublished} busDepth={snapshot.BusDepth} allocated={allocatedNow} gen0={gen0} gen1={gen1} gen2={gen2}");
             if (snapshot.TopKMessages.Count > 0)
             {
                 Console.WriteLine("TopK:");

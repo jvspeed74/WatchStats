@@ -91,6 +91,7 @@ namespace WatchStats.Core
         // Metrics (thread-safe reads)
         public long PublishedCount => Interlocked.Read(ref _published);
         public long DroppedCount => Interlocked.Read(ref _dropped);
+
         public int Depth
         {
             get
@@ -103,4 +104,3 @@ namespace WatchStats.Core
         }
     }
 }
-

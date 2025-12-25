@@ -15,7 +15,8 @@ namespace WatchStats.Core
 
         private volatile bool _stopping;
 
-        public ProcessingCoordinator(BoundedEventBus<FsEvent> bus, FileStateRegistry registry, IFileProcessor processor, WorkerStats[] workerStats, int workerCount = 4, int dequeueTimeoutMs = 200)
+        public ProcessingCoordinator(BoundedEventBus<FsEvent> bus, FileStateRegistry registry, IFileProcessor processor,
+            WorkerStats[] workerStats, int workerCount = 4, int dequeueTimeoutMs = 200)
         {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
@@ -50,7 +51,9 @@ namespace WatchStats.Core
                     if (!t.Join(2000)) t.Interrupt();
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         private void WorkerLoop(int workerIndex)

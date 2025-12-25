@@ -43,10 +43,7 @@ namespace WatchStats.Tests
             var bus = new BoundedEventBus<int>(2);
 
             // Start a consumer that waits
-            var t = Task.Run(() =>
-            {
-                Assert.False(bus.TryDequeue(out var item, 500));
-            });
+            var t = Task.Run(() => { Assert.False(bus.TryDequeue(out var item, 500)); });
 
             Thread.Sleep(50);
             bus.Stop();
@@ -113,4 +110,3 @@ namespace WatchStats.Tests
         }
     }
 }
-

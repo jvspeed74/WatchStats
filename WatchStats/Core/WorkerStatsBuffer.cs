@@ -4,7 +4,13 @@ using System.Collections.Generic;
 namespace WatchStats.Core
 {
     // Filesystem event kinds (per technical spec)
-    public enum FsEventKind { Created, Modified, Deleted, Renamed }
+    public enum FsEventKind
+    {
+        Created,
+        Modified,
+        Deleted,
+        Renamed
+    }
 
     // Per-worker stats buffer for a single reporting interval.
     public sealed class WorkerStatsBuffer
@@ -102,4 +108,3 @@ namespace WatchStats.Core
         }
     }
 }
-

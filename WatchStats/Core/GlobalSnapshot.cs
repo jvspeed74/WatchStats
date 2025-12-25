@@ -138,4 +138,3 @@ namespace WatchStats.Core
         }
     }
 }
-

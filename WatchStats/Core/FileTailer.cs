@@ -38,7 +38,8 @@ namespace WatchStats.Core
             try
             {
                 // Open with sharing to allow writers to append and deletions/renames
-                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete);
 
                 long length;
                 try
@@ -126,4 +127,3 @@ namespace WatchStats.Core
         }
     }
 }
-

@@ -18,7 +18,13 @@ namespace WatchStats.Tests
 
         public void Dispose()
         {
-            try { Directory.Delete(_dir, true); } catch { }
+            try
+            {
+                Directory.Delete(_dir, true);
+            }
+            catch
+            {
+            }
         }
 
         private string MakePath(string name) => Path.Combine(_dir, name);
@@ -132,4 +138,3 @@ namespace WatchStats.Tests
         }
     }
 }
-

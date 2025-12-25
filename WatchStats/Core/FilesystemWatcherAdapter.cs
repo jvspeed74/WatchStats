@@ -11,7 +11,8 @@ namespace WatchStats.Core
         private FileSystemWatcher? _watcher;
         private long _errorCount;
 
-        public FilesystemWatcherAdapter(string path, BoundedEventBus<FsEvent> bus, Func<string, bool>? isProcessable = null)
+        public FilesystemWatcherAdapter(string path, BoundedEventBus<FsEvent> bus,
+            Func<string, bool>? isProcessable = null)
         {
             _path = path ?? throw new ArgumentNullException(nameof(path));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
@@ -112,4 +113,3 @@ namespace WatchStats.Core
         }
     }
 }
-

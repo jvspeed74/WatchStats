@@ -10,7 +10,8 @@ if (!CliParser.TryParse(args, out var config, out var parseError))
 {
     if (parseError == "help")
     {
-        Console.WriteLine("Usage: WatchStats <watchPath> [--workers N] [--queue-capacity N] [--report-interval-seconds N] [--topk N]");
+        Console.WriteLine(
+            "Usage: WatchStats <watchPath> [--workers N] [--queue-capacity N] [--report-interval-seconds N] [--topk N]");
         return;
     }
 
@@ -46,7 +47,11 @@ try
     watcher = new FilesystemWatcherAdapter(config.WatchPath, bus);
 
     // register shutdown handlers
-    Console.CancelKeyPress += (s, e) => { e.Cancel = true; HostWiring.TriggerShutdown(bus, watcher, coordinator, reporter); };
+    Console.CancelKeyPress += (s, e) =>
+    {
+        e.Cancel = true;
+        HostWiring.TriggerShutdown(bus, watcher, coordinator, reporter);
+    };
     AppDomain.CurrentDomain.ProcessExit += (s, e) => HostWiring.TriggerShutdown(bus, watcher, coordinator, reporter);
 
     // start components in order

@@ -74,4 +74,3 @@ namespace WatchStats.Core
         }
     }
 }
-

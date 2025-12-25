@@ -47,6 +47,7 @@ namespace WatchStats.Core
             {
                 _bins[i] += other._bins[i];
             }
+
             _count += other._count;
         }
 
@@ -78,4 +79,3 @@ namespace WatchStats.Core
         }
     }
 }
-

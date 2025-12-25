@@ -18,7 +18,13 @@ namespace WatchStats.Tests
 
         public void Dispose()
         {
-            try { Directory.Delete(_dir, true); } catch { }
+            try
+            {
+                Directory.Delete(_dir, true);
+            }
+            catch
+            {
+            }
         }
 
         [Fact]
@@ -44,4 +50,3 @@ namespace WatchStats.Tests
         }
     }
 }
-

@@ -41,30 +41,70 @@ namespace WatchStats
                         case "--workers":
                             if (val == null)
                             {
-                                if (!TryConsumeValue(args, ref i, out val)) { error = "--workers requires a value"; return false; }
+                                if (!TryConsumeValue(args, ref i, out val))
+                                {
+                                    error = "--workers requires a value";
+                                    return false;
+                                }
                             }
-                            if (!int.TryParse(val, out workers)) { error = "invalid --workers value"; return false; }
+
+                            if (!int.TryParse(val, out workers))
+                            {
+                                error = "invalid --workers value";
+                                return false;
+                            }
+
                             break;
                         case "--queue-capacity":
                             if (val == null)
                             {
-                                if (!TryConsumeValue(args, ref i, out val)) { error = "--queue-capacity requires a value"; return false; }
+                                if (!TryConsumeValue(args, ref i, out val))
+                                {
+                                    error = "--queue-capacity requires a value";
+                                    return false;
+                                }
                             }
-                            if (!int.TryParse(val, out queueCapacity)) { error = "invalid --queue-capacity value"; return false; }
+
+                            if (!int.TryParse(val, out queueCapacity))
+                            {
+                                error = "invalid --queue-capacity value";
+                                return false;
+                            }
+
                             break;
                         case "--report-interval-seconds":
                             if (val == null)
                             {
-                                if (!TryConsumeValue(args, ref i, out val)) { error = "--report-interval-seconds requires a value"; return false; }
+                                if (!TryConsumeValue(args, ref i, out val))
+                                {
+                                    error = "--report-interval-seconds requires a value";
+                                    return false;
+                                }
                             }
-                            if (!int.TryParse(val, out reportIntervalSeconds)) { error = "invalid --report-interval-seconds value"; return false; }
+
+                            if (!int.TryParse(val, out reportIntervalSeconds))
+                            {
+                                error = "invalid --report-interval-seconds value";
+                                return false;
+                            }
+
                             break;
                         case "--topk":
                             if (val == null)
                             {
-                                if (!TryConsumeValue(args, ref i, out val)) { error = "--topk requires a value"; return false; }
+                                if (!TryConsumeValue(args, ref i, out val))
+                                {
+                                    error = "--topk requires a value";
+                                    return false;
+                                }
                             }
-                            if (!int.TryParse(val, out topK)) { error = "invalid --topk value"; return false; }
+
+                            if (!int.TryParse(val, out topK))
+                            {
+                                error = "invalid --topk value";
+                                return false;
+                            }
+
                             break;
                         case "--help":
                         case "-h":
@@ -78,11 +118,19 @@ namespace WatchStats
                 else
                 {
                     if (watchPath == null) watchPath = a;
-                    else { error = "unexpected positional argument"; return false; }
+                    else
+                    {
+                        error = "unexpected positional argument";
+                        return false;
+                    }
                 }
             }
 
-            if (string.IsNullOrEmpty(watchPath)) { error = "missing watchPath"; return false; }
+            if (string.IsNullOrEmpty(watchPath))
+            {
+                error = "missing watchPath";
+                return false;
+            }
 
             try
             {

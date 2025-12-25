@@ -28,8 +28,8 @@ namespace WatchStats.Core
             {
                 return list.GetRange(0, k);
             }
+
             return list;
         }
     }
 }
-
