@@ -3,14 +3,31 @@ using System.IO;
 
 namespace WatchStats
 {
+    /// <summary>
+    /// Validated application configuration populated from the CLI.
+    /// </summary>
     public sealed class AppConfig
     {
+        /// <summary>Directory path to watch (absolute path returned from constructor).</summary>
         public string WatchPath { get; }
+        /// <summary>Number of worker threads to use.</summary>
         public int Workers { get; }
+        /// <summary>Capacity of the filesystem event queue.</summary>
         public int QueueCapacity { get; }
+        /// <summary>Report interval in seconds.</summary>
         public int ReportIntervalSeconds { get; }
+        /// <summary>Top-K value for reporting.</summary>
         public int TopK { get; }
 
+        /// <summary>
+        /// Creates and validates an <see cref="AppConfig"/> instance. Throws <see cref="ArgumentException"/> or <see cref="ArgumentOutOfRangeException"/>
+        /// for invalid inputs.
+        /// </summary>
+        /// <param name="watchPath">Directory to watch; must exist.</param>
+        /// <param name="workers">Number of worker threads; must be >= 1.</param>
+        /// <param name="queueCapacity">Event queue capacity; must be >= 1.</param>
+        /// <param name="reportIntervalSeconds">Reporting interval in seconds; must be >= 1.</param>
+        /// <param name="topK">Top-K count for reporting; must be >= 1.</param>
         public AppConfig(string watchPath, int workers, int queueCapacity, int reportIntervalSeconds, int topK)
         {
             if (string.IsNullOrWhiteSpace(watchPath))
@@ -32,6 +49,9 @@ namespace WatchStats
             TopK = topK;
         }
 
+        /// <summary>
+        /// Returns a concise string representation of this configuration suitable for logging.
+        /// </summary>
         public override string ToString()
         {
             return string.Format("WatchPath={0}; Workers={1}; QueueCapacity={2}; ReportIntervalSeconds={3}; TopK={4}",

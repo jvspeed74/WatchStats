@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace WatchStats.Core
 {
+    /// <summary>
+    /// Coordinates worker threads that dequeue filesystem events and dispatch processing work.
+    /// </summary>
     public sealed class ProcessingCoordinator
     {
         private readonly BoundedEventBus<FsEvent> _bus;
@@ -15,6 +18,15 @@ namespace WatchStats.Core
 
         private volatile bool _stopping;
 
+        /// <summary>
+        /// Creates a new <see cref="ProcessingCoordinator"/>.
+        /// </summary>
+        /// <param name="bus">Event bus that supplies filesystem events.</param>
+        /// <param name="registry">Registry for per-file state.</param>
+        /// <param name="processor">Processor used to read and parse file data.</param>
+        /// <param name="workerStats">Preallocated per-worker stats containers (length determines worker count).</param>
+        /// <param name="workerCount">Requested worker count; the actual count will be at least 1.</param>
+        /// <param name="dequeueTimeoutMs">Timeout in milliseconds for bus dequeue operations; clamped to a minimum of 10ms.</param>
         public ProcessingCoordinator(BoundedEventBus<FsEvent> bus, FileStateRegistry registry, IFileProcessor processor,
             WorkerStats[] workerStats, int workerCount = 4, int dequeueTimeoutMs = 200)
         {
@@ -34,12 +46,19 @@ namespace WatchStats.Core
             }
         }
 
+        /// <summary>
+        /// Starts the worker threads. This method may be called once to begin processing.
+        /// </summary>
         public void Start()
         {
             _stopping = false;
             foreach (var t in _threads) t.Start();
         }
 
+        /// <summary>
+        /// Requests an orderly shutdown of the worker threads. This method signals stop to the underlying event bus
+        /// and waits briefly for threads to terminate; if a thread fails to join it is interrupted.
+        /// </summary>
         public void Stop()
         {
             _stopping = true;

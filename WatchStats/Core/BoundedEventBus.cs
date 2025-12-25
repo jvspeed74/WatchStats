@@ -4,7 +4,10 @@ using System.Threading;
 
 namespace WatchStats.Core
 {
-    // Bounded event bus with drop-newest semantics (drop the incoming event when full)
+    /// <summary>
+    /// Thread-safe bounded FIFO event bus with drop-newest semantics when full.
+    /// </summary>
+    /// <typeparam name="T">Type of events carried by the bus.</typeparam>
     public sealed class BoundedEventBus<T>
     {
         private readonly int _capacity;
@@ -15,13 +18,22 @@ namespace WatchStats.Core
         private long _published;
         private long _dropped;
 
+        /// <summary>
+        /// Creates a new bounded event bus with the provided capacity.
+        /// </summary>
+        /// <param name="capacity">Maximum number of items the bus will hold; must be &gt; 0.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="capacity"/> is not positive.</exception>
         public BoundedEventBus(int capacity)
         {
             if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity));
             _capacity = capacity;
         }
 
-        // Publish: returns true if enqueued; false if dropped or stopped
+        /// <summary>
+        /// Publishes an item to the bus. Returns <c>true</c> if the item was enqueued; <c>false</c> if the bus is stopped or the item was dropped due to capacity.
+        /// </summary>
+        /// <param name="item">Item to publish.</param>
+        /// <returns>True when enqueued; false if dropped or stopped.</returns>
         public bool Publish(T item)
         {
             lock (_lock)
@@ -44,7 +56,12 @@ namespace WatchStats.Core
             }
         }
 
-        // Try to dequeue with timeout in milliseconds. Returns true if item dequeued; false on timeout or stop with empty queue.
+        /// <summary>
+        /// Attempts to dequeue an item, waiting up to <paramref name="timeoutMs"/> milliseconds.
+        /// </summary>
+        /// <param name="item">On success receives the dequeued item; when false it is set to default.</param>
+        /// <param name="timeoutMs">Maximum wait time in milliseconds (clamped to minimum 0).</param>
+        /// <returns>True when an item was dequeued; false on timeout or when the bus is stopped and empty.</returns>
         public bool TryDequeue(out T item, int timeoutMs)
         {
             var deadline = DateTime.UtcNow + TimeSpan.FromMilliseconds(Math.Max(0, timeoutMs));
@@ -78,7 +95,9 @@ namespace WatchStats.Core
             }
         }
 
-        // Stop: unblocks waiting consumers
+        /// <summary>
+        /// Stops the bus and unblocks waiting consumers. Subsequent publishes return false.
+        /// </summary>
         public void Stop()
         {
             lock (_lock)
@@ -88,10 +107,14 @@ namespace WatchStats.Core
             }
         }
 
-        // Metrics (thread-safe reads)
+        /// <summary>Number of items successfully published to the bus.</summary>
         public long PublishedCount => Interlocked.Read(ref _published);
+        /// <summary>Number of items dropped due to capacity limits.</summary>
         public long DroppedCount => Interlocked.Read(ref _dropped);
 
+        /// <summary>Returns the current depth of the internal queue.
+        /// This value is snapshot-based and may change immediately after being read.
+        /// </summary>
         public int Depth
         {
             get

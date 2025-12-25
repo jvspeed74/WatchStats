@@ -2,7 +2,10 @@
 
 namespace WatchStats.Core
 {
-    // Bounded, mergeable histogram for latencies 0..10000 plus overflow bin at index 10001
+    /// <summary>
+    /// Bounded, mergeable histogram for latencies in milliseconds.
+    /// Tracks values 0..10000 in discrete bins and uses an overflow bin for values > 10000.
+    /// </summary>
     public sealed class LatencyHistogram
     {
         private const int MaxMs = 10_000;
@@ -12,16 +15,24 @@ namespace WatchStats.Core
         private readonly int[] _bins;
         private long _count;
 
+        /// <summary>
+        /// Creates a new empty histogram.
+        /// </summary>
         public LatencyHistogram()
         {
             _bins = new int[BinCount];
             _count = 0;
         }
 
-        // Expose for tests/inspection (read-only)
+        /// <summary>Read-only span of bin counts indexed by millisecond value; index 10001 is the overflow bin.</summary>
         public ReadOnlySpan<int> Bins => _bins;
+        /// <summary>Total number of samples recorded in the histogram.</summary>
         public long Count => _count;
 
+        /// <summary>
+        /// Records a latency sample in milliseconds. Negative values are clamped to bin 0; values greater than 10000 map to the overflow bin.
+        /// </summary>
+        /// <param name="latencyMs">Latency in milliseconds.</param>
         public void Add(int latencyMs)
         {
             int idx;
@@ -33,12 +44,20 @@ namespace WatchStats.Core
             _count++;
         }
 
+        /// <summary>
+        /// Resets the histogram to empty.
+        /// </summary>
         public void Reset()
         {
             Array.Clear(_bins, 0, _bins.Length);
             _count = 0;
         }
 
+        /// <summary>
+        /// Merges bins and count from <paramref name="other"/> into this histogram.
+        /// </summary>
+        /// <param name="other">Histogram to merge from; must not be null.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="other"/> is null.</exception>
         public void MergeFrom(LatencyHistogram other)
         {
             if (other == null) throw new ArgumentNullException(nameof(other));
@@ -51,8 +70,12 @@ namespace WatchStats.Core
             _count += other._count;
         }
 
-        // p in (0..1] (e.g., 0.5 for p50). Returns null if no samples.
-        // Overflow is represented by returning 10001.
+        /// <summary>
+        /// Returns the p-th percentile bin index (for p in (0..1]). For example, p=0.5 returns the median bin.
+        /// Returns <c>null</c> when no samples are present. The overflow bin index is 10001.
+        /// </summary>
+        /// <param name="p">Percentile to compute (0..1].</param>
+        /// <returns>Bin index representing the percentile, or <c>null</c> if empty.</returns>
         public int? Percentile(double p)
         {
             if (_count == 0) return null;

@@ -4,7 +4,10 @@ using System.Threading;
 
 namespace WatchStats.Core
 {
-    // Simple Reporter that follows the documented behavior: requests swap, waits for acks, merges into GlobalSnapshot, and prints a simple report.
+    /// <summary>
+    /// Periodically requests worker stats swaps, merges per-worker buffers into a <see cref="GlobalSnapshot"/>, and prints a report.
+    /// The reporter runs on a background thread when <see cref="Start"/> is called and stops after <see cref="Stop"/> is invoked.
+    /// </summary>
     public sealed class Reporter
     {
         private readonly WorkerStats[] _workers;
@@ -17,6 +20,14 @@ namespace WatchStats.Core
         // snapshot reused across reports
         private readonly GlobalSnapshot _snapshot;
 
+        /// <summary>
+        /// Creates a new <see cref="Reporter"/> instance.
+        /// </summary>
+        /// <param name="workers">Array of per-worker <see cref="WorkerStats"/> instances; used to request swaps and read inactive buffers.</param>
+        /// <param name="bus">Event bus whose metrics (published/dropped/depth) are attached to the snapshot.</param>
+        /// <param name="topK">Number of top messages to compute in each report; clamped to at least 1.</param>
+        /// <param name="intervalSeconds">Report interval in seconds; clamped to at least 1.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="workers"/> or <paramref name="bus"/> is null.</exception>
         public Reporter(WorkerStats[] workers, BoundedEventBus<FsEvent> bus, int topK = 10, int intervalSeconds = 2)
         {
             _workers = workers ?? throw new ArgumentNullException(nameof(workers));
@@ -26,6 +37,10 @@ namespace WatchStats.Core
             _snapshot = new GlobalSnapshot(_topK);
         }
 
+        /// <summary>
+        /// Starts the reporter's background thread which will periodically collect and print reports.
+        /// Calling <see cref="Start"/> when already started will create a new background thread; callers should ensure it is not started multiple times unintentionally.
+        /// </summary>
         public void Start()
         {
             _stopping = false;
@@ -33,6 +48,9 @@ namespace WatchStats.Core
             _thread.Start();
         }
 
+        /// <summary>
+        /// Requests the reporter to stop and waits briefly for the background thread to exit.
+        /// </summary>
         public void Stop()
         {
             _stopping = true;
@@ -95,7 +113,11 @@ namespace WatchStats.Core
             }
         }
 
-        // Extracted for unit testing: performs swap/merge and returns the populated GlobalSnapshot
+        /// <summary>
+        /// Performs the merge of inactive worker buffers into the shared <see cref="GlobalSnapshot"/>, attaches bus metrics and finalizes derived outputs.
+        /// This method is <c>internal</c> and extracted to allow unit testing of snapshot construction.
+        /// </summary>
+        /// <returns>The populated <see cref="GlobalSnapshot"/> instance (shared instance reused by the reporter).</returns>
         internal GlobalSnapshot BuildSnapshotAndFrame()
         {
             _snapshot.ResetForNextMerge(_topK);
@@ -114,6 +136,11 @@ namespace WatchStats.Core
             return _snapshot;
         }
 
+        /// <summary>
+        /// Formats and writes the provided snapshot to <see cref="Console"/> including allocation and GC stats.
+        /// </summary>
+        /// <param name="snapshot">Snapshot to print.</param>
+        /// <param name="elapsedSeconds">Elapsed interval in seconds used for the printed report line.</param>
         private void PrintReportFrame(GlobalSnapshot snapshot, double elapsedSeconds)
         {
             long allocatedNow = GC.GetTotalAllocatedBytes(false);

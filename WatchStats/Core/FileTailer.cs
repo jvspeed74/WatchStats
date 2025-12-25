@@ -4,22 +4,45 @@ using System.IO;
 
 namespace WatchStats.Core
 {
+    /// <summary>
+    /// Describes the outcome of an attempt to read newly appended bytes from a file.
+    /// </summary>
     public enum TailReadStatus
     {
+        /// <summary>No new data was available for the requested offset.</summary>
         NoData,
+        /// <summary>Some bytes were read and the provided offset was advanced.</summary>
         ReadSome,
+        /// <summary>The target file was not found.</summary>
         FileNotFound,
+        /// <summary>Access to the file was denied.</summary>
         AccessDenied,
+        /// <summary>An I/O error occurred while attempting to read the file.</summary>
         IoError,
+        /// <summary>The file was truncated and the offset was reset to zero; bytes were (optionally) read.</summary>
         TruncatedReset
     }
 
+    /// <summary>
+    /// Utility to read bytes that have been appended to a file since a given offset.
+    /// </summary>
     public sealed class FileTailer
     {
         private const int DefaultChunkSize = 64 * 1024;
 
-        // Read newly appended bytes since offset. Does not advance offset unless bytesRead>0.
-        // onChunk is invoked for each chunk read (span refers to rented buffer until callback returns).
+        /// <summary>
+        /// Reads bytes appended to <paramref name="path"/> since <paramref name="offset"/> and invokes <paramref name="onChunk"/> for each chunk read.
+        /// The provided <see cref="ReadOnlySpan{Byte}"/> passed to <paramref name="onChunk"/> is only valid for the duration of the callback and must not be stored.
+        /// On successful read the value referenced by <paramref name="offset"/> is advanced by the number of bytes read.
+        /// I/O and permission errors are mapped to a <see cref="TailReadStatus"/> return value instead of being thrown.
+        /// </summary>
+        /// <param name="path">The filesystem path to the file to tail.</param>
+        /// <param name="offset">On input the offset to start reading from; on successful read this value is advanced to the new offset.</param>
+        /// <param name="onChunk">Callback invoked for each chunk read. The provided <see cref="ReadOnlySpan{Byte}"/> must not be retained beyond the callback.</param>
+        /// <param name="totalBytesRead">Outputs the total number of bytes read during this call.</param>
+        /// <param name="chunkSize">Maximum chunk size to use when reading; when &lt;= 0 the default of 64 KiB is used.</param>
+        /// <returns>A <see cref="TailReadStatus"/> describing the outcome of the read operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="path"/> or <paramref name="onChunk"/> is <c>null</c>.</exception>
         public TailReadStatus ReadAppended(
             string path,
             ref long offset,

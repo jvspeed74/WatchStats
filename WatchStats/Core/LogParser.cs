@@ -4,21 +4,39 @@ using System.Text;
 
 namespace WatchStats.Core
 {
+    /// <summary>
+    /// Represents the severity level of a parsed log line.
+    /// </summary>
     public enum LogLevel
     {
+        /// <summary>Informational messages.</summary>
         Info,
+        /// <summary>Warning messages.</summary>
         Warn,
+        /// <summary>Error messages.</summary>
         Error,
+        /// <summary>Debug-level messages.</summary>
         Debug,
+        /// <summary>Unrecognized or other levels.</summary>
         Other
     }
 
-    // Replace the record struct with a readonly ref struct so it can contain a ReadOnlySpan<byte>
+    /// <summary>
+    /// A stack-only view containing fields parsed from a single log line.
+    /// This is a <c>readonly ref struct</c> and therefore must not be boxed or stored across async/heap boundaries.
+    /// </summary>
     public readonly ref struct ParsedLogLine
     {
+        /// <summary>The event timestamp parsed from the log line.</summary>
         public DateTimeOffset Timestamp { get; }
+        /// <summary>The parsed log level.</summary>
         public LogLevel Level { get; }
+        /// <summary>
+        /// The message key bytes as a <see cref="ReadOnlySpan{Byte}"/> that points into the original input.
+        /// The span is only valid for the lifetime of the input passed to <see cref="LogParser.TryParse"/> and must not be retained.
+        /// </summary>
         public ReadOnlySpan<byte> MessageKey { get; }
+        /// <summary>Optional latency value (milliseconds) extracted from the line, or <c>null</c> if not present.</summary>
         public int? LatencyMs { get; }
 
         public ParsedLogLine(DateTimeOffset timestamp, LogLevel level, ReadOnlySpan<byte> messageKey, int? latencyMs)
@@ -30,6 +48,10 @@ namespace WatchStats.Core
         }
     }
 
+    /// <summary>
+    /// Lightweight parser for newline-delimited UTF-8 log lines that extracts timestamp, level, message key and optional latency.
+    /// Parsing works on <see cref="ReadOnlySpan{Byte}"/> to avoid allocations; callers must not retain spans returned inside <see cref="ParsedLogLine"/>.
+    /// </summary>
     public static class LogParser
     {
         private static readonly string[] IsoFormats = new[]
@@ -45,6 +67,12 @@ namespace WatchStats.Core
             (byte)'s', (byte)'='
         };
 
+        /// <summary>
+        /// Attempts to parse a single UTF‑8 encoded log line into a <see cref="ParsedLogLine"/> view.
+        /// </summary>
+        /// <param name="line">The UTF‑8 encoded bytes of a single log line. The parser does not retain the span.</param>
+        /// <param name="parsed">On success contains the parsed fields; on failure the out value is unspecified.</param>
+        /// <returns><c>true</c> when parsing succeeded and <paramref name="parsed"/> contains valid fields; otherwise <c>false</c>.</returns>
         public static bool TryParse(ReadOnlySpan<byte> line, out ParsedLogLine parsed)
         {
             parsed = default;

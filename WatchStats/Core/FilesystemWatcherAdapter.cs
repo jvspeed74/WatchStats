@@ -3,6 +3,9 @@ using System.IO;
 
 namespace WatchStats.Core
 {
+    /// <summary>
+    /// Adapter that wraps <see cref="FileSystemWatcher"/> and publishes <see cref="FsEvent"/> events to a <see cref="BoundedEventBus{T}"/>.
+    /// </summary>
     public sealed class FilesystemWatcherAdapter : IDisposable
     {
         private readonly string _path;
@@ -11,6 +14,13 @@ namespace WatchStats.Core
         private FileSystemWatcher? _watcher;
         private long _errorCount;
 
+        /// <summary>
+        /// Creates a new adapter for the specified path. If <paramref name="isProcessable"/> is null a default predicate
+        /// that accepts .log and .txt files is used.
+        /// </summary>
+        /// <param name="path">Directory path to watch.</param>
+        /// <param name="bus">Event bus to publish discovered events to.</param>
+        /// <param name="isProcessable">Optional predicate to filter which file paths are considered processable.</param>
         public FilesystemWatcherAdapter(string path, BoundedEventBus<FsEvent> bus,
             Func<string, bool>? isProcessable = null)
         {
@@ -34,14 +44,24 @@ namespace WatchStats.Core
             _watcher.Error += OnError;
         }
 
+        /// <summary>
+        /// Number of watcher errors observed. This counter is incremented when the underlying <see cref="FileSystemWatcher"/> raises an error.
+        /// </summary>
         public long ErrorCount => System.Threading.Interlocked.Read(ref _errorCount);
 
+        /// <summary>
+        /// Enables the underlying <see cref="FileSystemWatcher"/> to begin raising events. Throws <see cref="ObjectDisposedException"/>
+        /// if the adapter has been disposed.
+        /// </summary>
         public void Start()
         {
             if (_watcher == null) throw new ObjectDisposedException(nameof(FilesystemWatcherAdapter));
             _watcher.EnableRaisingEvents = true;
         }
 
+        /// <summary>
+        /// Disables event raising. This method is safe to call multiple times.
+        /// </summary>
         public void Stop()
         {
             if (_watcher == null) return;
@@ -97,6 +117,9 @@ namespace WatchStats.Core
             }
         }
 
+        /// <summary>
+        /// Disposes the adapter and releases the underlying <see cref="FileSystemWatcher"/>. Safe to call multiple times.
+        /// </summary>
         public void Dispose()
         {
             if (_watcher != null)

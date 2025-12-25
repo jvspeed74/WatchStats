@@ -9,6 +9,14 @@ namespace WatchStats
         private static int _shutdownRequested = 0;
         private static readonly ManualResetEventSlim _shutdownEvent = new(false);
 
+        /// <summary>
+        /// Requests a coordinated shutdown of the provided host components. Safe to call multiple times.
+        /// Non-null components will be stopped/disposed where applicable; exceptions thrown by components are logged to <see cref="Console.Error"/>.
+        /// </summary>
+        /// <param name="bus">Optional event bus to stop.</param>
+        /// <param name="watcher">Optional filesystem watcher adapter to stop and dispose.</param>
+        /// <param name="coordinator">Optional processing coordinator to stop.</param>
+        /// <param name="reporter">Optional reporter to stop.</param>
         public static void TriggerShutdown(BoundedEventBus<FsEvent>? bus, FilesystemWatcherAdapter? watcher,
             ProcessingCoordinator? coordinator, Reporter? reporter)
         {
@@ -87,6 +95,9 @@ namespace WatchStats
             }
         }
 
+        /// <summary>
+        /// Blocks until the host shutdown has been requested and the shutdown event has been signaled.
+        /// </summary>
         public static void WaitForShutdown() => _shutdownEvent.Wait();
     }
 }

@@ -3,8 +3,20 @@ using System.IO;
 
 namespace WatchStats
 {
+    /// <summary>
+    /// Command-line parser for the WatchStats application.
+    /// </summary>
     public static class CliParser
     {
+        /// <summary>
+        /// Attempts to parse command-line arguments into an <see cref="AppConfig"/> instance.
+        /// On success returns <c>true</c> and sets <paramref name="config"/>; on failure returns <c>false</c> and sets <paramref name="error"/>.
+        /// This method never throws on parse errors.
+        /// </summary>
+        /// <param name="args">Array of command-line arguments.</param>
+        /// <param name="config">On success receives a validated <see cref="AppConfig"/> instance; otherwise <c>null</c>.</param>
+        /// <param name="error">On failure receives an error string (or "help" when help was requested).</param>
+        /// <returns>True when parsing succeeded and <paramref name="config"/> is set; otherwise false.</returns>
         public static bool TryParse(string[] args, out AppConfig? config, out string? error)
         {
             config = null;
@@ -144,6 +156,13 @@ namespace WatchStats
             }
         }
 
+        /// <summary>
+        /// Attempts to consume the next argument value from <paramref name="args"/>, advancing <paramref name="i"/>.
+        /// </summary>
+        /// <param name="args">Argument array.</param>
+        /// <param name="i">Index of the current argument; will be advanced when a value is consumed.</param>
+        /// <param name="value">On success receives the consumed value.</param>
+        /// <returns>True when a value was consumed; otherwise false.</returns>
         private static bool TryConsumeValue(string[] args, ref int i, out string? value)
         {
             value = null;
