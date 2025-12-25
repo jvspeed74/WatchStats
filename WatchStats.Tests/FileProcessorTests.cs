@@ -133,7 +133,7 @@ namespace WatchStats.Tests
                 // force small chunk size to cause carryover
                 fp.ProcessOnce(p, state, stats, 32);
                 Assert.Equal(1, stats.LinesProcessed);
-                Assert.Equal(1, stats.MessageCounts.Count);
+                Assert.Single(stats.MessageCounts);
             }
         }
     }
