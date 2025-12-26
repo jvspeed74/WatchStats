@@ -15,7 +15,7 @@ namespace WatchStats.Seed
         public int LinesPerFileMax { get; init; } = 1000;
         public double DeleteExistingProbability { get; init; } = 0.1;
         public int DelayMsBetweenIterations { get; init; } = 200;
-        public long MaxTotalFilesWritten { get; init; } = 100000;
+        public long MaxTotalFileOperations { get; init; } = 100000;
         public int SummaryIntervalSeconds { get; init; } = 30;
 
         public void Validate()
@@ -32,7 +32,7 @@ namespace WatchStats.Seed
             if (LinesPerFileMax < LinesPerFileMin) throw new ArgumentOutOfRangeException(nameof(LinesPerFileMax));
             if (DeleteExistingProbability < 0.0 || DeleteExistingProbability > 1.0) throw new ArgumentOutOfRangeException(nameof(DeleteExistingProbability));
             if (DelayMsBetweenIterations < 0) throw new ArgumentOutOfRangeException(nameof(DelayMsBetweenIterations));
-            if (MaxTotalFilesWritten < 0) throw new ArgumentOutOfRangeException(nameof(MaxTotalFilesWritten));
+            if (MaxTotalFileOperations < 0) throw new ArgumentOutOfRangeException(nameof(MaxTotalFileOperations));
             if (SummaryIntervalSeconds < 1) throw new ArgumentOutOfRangeException(nameof(SummaryIntervalSeconds));
         }
     }

@@ -69,7 +69,7 @@ namespace WatchStats.Seed
 
             var rnd = new Random();
 
-            long totalWrites = 0;
+            long totalLinesWritten = 0;
             long createdFiles = 0;
             long appendedFiles = 0;
             long deletedFiles = 0;
@@ -79,7 +79,7 @@ namespace WatchStats.Seed
             var lastSummary = DateTime.UtcNow;
             var startTime = DateTime.UtcNow;
 
-            Console.WriteLine("Starting seed writer. TempPath={0} MaxTotalFilesWritten={1}", tempPath, config.MaxTotalFilesWritten);
+            Console.WriteLine("Starting seed writer. TempPath={0} MaxTotalFilesWritten={1}", tempPath, config.MaxTotalFileOperations);
 
             try
             {
@@ -88,9 +88,9 @@ namespace WatchStats.Seed
                     iterations++;
 
                     // check fail-safe
-                    if (config.MaxTotalFilesWritten > 0 && totalWrites >= config.MaxTotalFilesWritten)
+                    if (config.MaxTotalFileOperations > 0 && createdFiles + appendedFiles + deletedFiles >= config.MaxTotalFileOperations)
                     {
-                        Console.WriteLine("Reached MaxTotalFilesWritten ({0}), stopping.", config.MaxTotalFilesWritten);
+                        Console.WriteLine("Reached MaxTotalFilesWritten ({0}), stopping.", config.MaxTotalFileOperations);
                         break;
                     }
 
@@ -145,13 +145,13 @@ namespace WatchStats.Seed
                                 }
                             }
 
-                            totalWrites += linesToAdd;
+                            totalLinesWritten += linesToAdd;
                             if (isNew) createdFiles++; else appendedFiles++;
 
                             // occasionally print a small log line
                             if ((iterations & 0xF) == 0)
                             {
-                                Console.WriteLine("Wrote {0} lines to {1} (totalWrites={2})", linesToAdd, filePath, totalWrites);
+                                Console.WriteLine("Wrote {0} lines to {1} (totalWrites={2})", linesToAdd, filePath, totalLinesWritten);
                             }
                         }
                         catch (Exception ex)
@@ -179,7 +179,7 @@ namespace WatchStats.Seed
                         Console.WriteLine("--- Summary ---");
                         Console.WriteLine("Elapsed: {0}", elapsed);
                         Console.WriteLine("Iterations: {0}", iterations);
-                        Console.WriteLine("Total lines written: {0}", totalWrites);
+                        Console.WriteLine("Total lines written: {0}", totalLinesWritten);
                         Console.WriteLine("Created files: {0}", createdFiles);
                         Console.WriteLine("Appended files: {0}", appendedFiles);
                         Console.WriteLine("Deleted files: {0}", deletedFiles);
@@ -204,7 +204,7 @@ namespace WatchStats.Seed
                 var elapsed = DateTime.UtcNow - startTime;
                 Console.WriteLine("Elapsed: {0}", elapsed);
                 Console.WriteLine("Iterations: {0}", iterations);
-                Console.WriteLine("Total lines written: {0}", totalWrites);
+                Console.WriteLine("Total lines written: {0}", totalLinesWritten);
                 Console.WriteLine("Created files: {0}", createdFiles);
                 Console.WriteLine("Appended files: {0}", appendedFiles);
                 Console.WriteLine("Deleted files: {0}", deletedFiles);
