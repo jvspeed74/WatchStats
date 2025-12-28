@@ -25,7 +25,7 @@ namespace WatchStats.Seed
         {
             // load configuration
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
 
             var configuration = builder.Build();
