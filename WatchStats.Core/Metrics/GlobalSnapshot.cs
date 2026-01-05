@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using WatchStats.Core.Processing;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.Metrics
 {
     /// <summary>
     /// Aggregated metrics and derived outputs for a reporting interval.

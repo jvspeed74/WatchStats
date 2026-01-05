@@ -1,8 +1,6 @@
-﻿using System;
-using System.Buffers;
-using System.IO;
+﻿using System.Buffers;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.IO
 {
     /// <summary>
     /// Describes the outcome of an attempt to read newly appended bytes from a file.

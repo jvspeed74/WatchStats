@@ -1,10 +1,8 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using WatchStats.Core.Concurrency;
+using WatchStats.Core.Models;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.Metrics
 {
     /// <summary>
     /// Periodically requests worker stats swaps, merges per-worker buffers into a <see cref="GlobalSnapshot"/>, and prints a report.

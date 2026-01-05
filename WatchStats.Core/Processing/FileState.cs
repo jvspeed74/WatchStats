@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading;
+﻿using System.Collections.Concurrent;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.Processing
 {
     /// <summary>
     /// Per-path mutable state used by the tailer and processor.

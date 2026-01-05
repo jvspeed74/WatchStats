@@ -3,6 +3,9 @@ using System.IO;
 using System.Text;
 using Xunit;
 using WatchStats.Core;
+using WatchStats.Core.IO;
+using WatchStats.Core.Metrics;
+using WatchStats.Core.Processing;
 
 namespace WatchStats.Tests
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-
-namespace WatchStats.Core
+﻿namespace WatchStats.Core.Concurrency
 {
     /// <summary>
     /// Thread-safe bounded FIFO event bus with drop-newest semantics when full.

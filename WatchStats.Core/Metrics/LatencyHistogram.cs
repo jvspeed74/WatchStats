@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WatchStats.Core
+﻿namespace WatchStats.Core.Metrics
 {
     /// <summary>
     /// Bounded, mergeable histogram for latencies in milliseconds.

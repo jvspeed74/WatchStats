@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Xunit;
+using WatchStats.App;
 
 namespace WatchStats.Tests
 {
@@ -29,7 +30,7 @@ namespace WatchStats.Tests
         public void Parse_DefaultsAndPositional_Works()
         {
             var args = new string[] { _tmpDir };
-            Assert.True(WatchStats.CliParser.TryParse(args, out var cfg, out var err));
+            Assert.True(CliParser.TryParse(args, out var cfg, out var err));
             Assert.Null(err);
             Assert.NotNull(cfg);
             Assert.Equal(Path.GetFullPath(_tmpDir), cfg!.WatchPath);
@@ -44,7 +45,7 @@ namespace WatchStats.Tests
         {
             var args = new string[]
                 { _tmpDir, "--workers", "3", "--queue-capacity=500", "--report-interval-seconds", "5", "--topk", "7" };
-            Assert.True(WatchStats.CliParser.TryParse(args, out var cfg, out var err));
+            Assert.True(CliParser.TryParse(args, out var cfg, out var err));
             Assert.Null(err);
             Assert.NotNull(cfg);
             Assert.Equal(3, cfg!.Workers);
@@ -57,7 +58,7 @@ namespace WatchStats.Tests
         public void Parse_MissingPath_Fails()
         {
             var args = Array.Empty<string>();
-            Assert.False(WatchStats.CliParser.TryParse(args, out var cfg, out var err));
+            Assert.False(CliParser.TryParse(args, out var cfg, out var err));
             Assert.NotNull(err);
         }
 
@@ -65,7 +66,7 @@ namespace WatchStats.Tests
         public void Parse_InvalidNumber_Fails()
         {
             var args = new string[] { _tmpDir, "--workers", "notanumber" };
-            Assert.False(WatchStats.CliParser.TryParse(args, out var cfg, out var err));
+            Assert.False(CliParser.TryParse(args, out var cfg, out var err));
             Assert.NotNull(err);
         }
     }

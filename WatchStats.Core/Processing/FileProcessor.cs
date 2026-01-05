@@ -1,7 +1,8 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
+using WatchStats.Core.IO;
+using WatchStats.Core.Metrics;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.Processing
 {
     /// <summary>
     /// Abstraction for a component that processes appended data in a single file once.

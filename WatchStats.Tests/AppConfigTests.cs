@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using WatchStats.App;
 using Xunit;
+
 
 namespace WatchStats.Tests
 {
@@ -28,7 +30,7 @@ namespace WatchStats.Tests
         [Fact]
         public void Constructor_Valid_SetsValues()
         {
-            var cfg = new WatchStats.AppConfig(_tmpDir, 2, 1000, 3, 5);
+            var cfg = new AppConfig(_tmpDir, 2, 1000, 3, 5);
             Assert.Equal(Path.GetFullPath(_tmpDir), cfg.WatchPath);
             Assert.Equal(2, cfg.Workers);
             Assert.Equal(1000, cfg.QueueCapacity);
@@ -39,7 +41,7 @@ namespace WatchStats.Tests
         [Fact]
         public void Constructor_InvalidPath_Throws()
         {
-            Assert.Throws<ArgumentException>(() => new WatchStats.AppConfig("doesnotexist", 1, 1, 1, 1));
+            Assert.Throws<ArgumentException>(() => new AppConfig("doesnotexist", 1, 1, 1, 1));
         }
 
         [Theory]
@@ -50,7 +52,7 @@ namespace WatchStats.Tests
         public void Constructor_InvalidNumbers_Throws(int workers, int queueCap, int reportSecs, int topk)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new WatchStats.AppConfig(_tmpDir, workers, queueCap, reportSecs, topk));
+                new AppConfig(_tmpDir, workers, queueCap, reportSecs, topk));
         }
     }
 }

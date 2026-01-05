@@ -19,7 +19,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\WatchStats\WatchStats.csproj"/>
+        <ProjectReference Include="..\WatchStats.App\WatchStats.App.csproj" />
+        <ProjectReference Include="..\WatchStats.Core\WatchStats.Core.csproj" />
     </ItemGroup>
 
 </Project>

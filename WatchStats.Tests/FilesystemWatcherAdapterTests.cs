@@ -3,6 +3,9 @@ using System.IO;
 using System.Threading;
 using Xunit;
 using WatchStats.Core;
+using WatchStats.Core.Concurrency;
+using WatchStats.Core.IO;
+using WatchStats.Core.Models;
 
 namespace WatchStats.Tests
 {

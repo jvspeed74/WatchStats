@@ -1,8 +1,7 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.Processing
 {
     /// <summary>
     /// Represents the severity level of a parsed log line.

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Collections.Generic;
+﻿using WatchStats.Core.Metrics;
+using WatchStats.Core.Models;
+using WatchStats.Core.Processing;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.Concurrency
 {
     /// <summary>
     /// Coordinates worker threads that dequeue filesystem events and dispatch processing work.

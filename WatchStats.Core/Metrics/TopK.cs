@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace WatchStats.Core
+﻿namespace WatchStats.Core.Metrics
 {
     /// <summary>
     /// Utility to compute top-K message keys by count.

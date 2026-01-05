@@ -1,4 +1,4 @@
-﻿namespace WatchStats.Core
+﻿namespace WatchStats.Core.Processing
 {
     // PartialLineBuffer holds carryover bytes for a single file between chunk scans.
     // Fields are public to match the doc's simple data-shape.

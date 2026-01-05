@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Threading;
+﻿using WatchStats.Core.Concurrency;
+using WatchStats.Core.Metrics;
+using WatchStats.Core.Models;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.IO
 {
     /// <summary>
     /// Adapter that wraps <see cref="FileSystemWatcher"/> and publishes <see cref="FsEvent"/> events to a <see cref="BoundedEventBus{T}"/>.

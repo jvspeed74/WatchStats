@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using WatchStats.Core;
+using WatchStats.Core.Processing;
 
 namespace WatchStats.Tests
 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 using WatchStats.Core;
+using WatchStats.Core.Processing;
 
 namespace WatchStats.Tests
 {

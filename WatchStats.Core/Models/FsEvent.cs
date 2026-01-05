@@ -1,6 +1,6 @@
-﻿using System;
+﻿using WatchStats.Core.Metrics;
 
-namespace WatchStats.Core
+namespace WatchStats.Core.Models
 {
     /// <summary>
     /// Represents a filesystem event observed by the watcher.

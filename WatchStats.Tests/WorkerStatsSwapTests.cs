@@ -2,6 +2,7 @@
 using System.Threading;
 using Xunit;
 using WatchStats.Core;
+using WatchStats.Core.Metrics;
 
 namespace WatchStats.Tests
 {
