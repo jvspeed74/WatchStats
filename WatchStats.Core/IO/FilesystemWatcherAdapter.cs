@@ -1,6 +1,6 @@
 ﻿using WatchStats.Core.Concurrency;
+using WatchStats.Core.Events;
 using WatchStats.Core.Metrics;
-using WatchStats.Core.Models;
 
 namespace WatchStats.Core.IO
 {
@@ -114,6 +114,7 @@ namespace WatchStats.Core.IO
             catch
             {
                 // Swallow any exceptions to keep handlers lightweight
+                // todo log
             }
         }
 

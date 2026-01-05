@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.Concurrency;
+using WatchStats.Core.Events;
 using WatchStats.Core.Metrics;
-using WatchStats.Core.Models;
 using WatchStats.Core.Processing;
 
 namespace WatchStats.Tests

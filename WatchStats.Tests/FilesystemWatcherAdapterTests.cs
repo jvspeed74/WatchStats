@@ -4,8 +4,8 @@ using System.Threading;
 using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.Concurrency;
+using WatchStats.Core.Events;
 using WatchStats.Core.IO;
-using WatchStats.Core.Models;
 
 namespace WatchStats.Tests
 {

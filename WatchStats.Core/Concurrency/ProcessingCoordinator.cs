@@ -1,5 +1,5 @@
-﻿using WatchStats.Core.Metrics;
-using WatchStats.Core.Models;
+﻿using WatchStats.Core.Events;
+using WatchStats.Core.Metrics;
 using WatchStats.Core.Processing;
 
 namespace WatchStats.Core.Concurrency

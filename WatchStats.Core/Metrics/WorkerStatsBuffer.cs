@@ -1,22 +1,8 @@
-﻿using WatchStats.Core.Processing;
+﻿using WatchStats.Core.Events;
+using WatchStats.Core.Processing;
 
 namespace WatchStats.Core.Metrics
 {
-    /// <summary>
-    /// Filesystem event kinds used by the watcher and processing pipeline.
-    /// </summary>
-    public enum FsEventKind
-    {
-        /// <summary>File created.</summary>
-        Created,
-        /// <summary>File modified.</summary>
-        Modified,
-        /// <summary>File deleted.</summary>
-        Deleted,
-        /// <summary>File renamed.</summary>
-        Renamed
-    }
-
     /// <summary>
     /// Per-worker stats buffer for a single reporting interval. Contains counters, message counts and a latency histogram.
     /// Callers should treat instances as single-threaded containers (workers write to active buffer; reporter reads inactive buffer after swap).

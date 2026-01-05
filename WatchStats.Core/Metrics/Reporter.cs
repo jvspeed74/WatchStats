@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using WatchStats.Core.Concurrency;
-using WatchStats.Core.Models;
+using WatchStats.Core.Events;
 
 namespace WatchStats.Core.Metrics
 {

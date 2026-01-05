@@ -1,9 +1,9 @@
 ﻿using WatchStats.App;
 using WatchStats.Core;
 using WatchStats.Core.Concurrency;
+using WatchStats.Core.Events;
 using WatchStats.Core.IO;
 using WatchStats.Core.Metrics;
-using WatchStats.Core.Models;
 using WatchStats.Core.Processing;
 
 // Host wiring for WatchStats.Core
