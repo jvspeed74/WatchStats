@@ -203,10 +203,14 @@ namespace WatchStats.Core
             double fsRate = elapsedSeconds > 0 ? fsEventsTotal / elapsedSeconds : 0.0;
             double linesRate = elapsedSeconds > 0 ? lines / elapsedSeconds : 0.0;
 
+            // TODO: format long message into several short ones
+            // TODO: missing histogram percentiles
             Console.WriteLine(
                 $"[REPORT] elapsed={elapsedSeconds:0.00}s lines={snapshot.LinesProcessed} lines/s={linesRate:0.00} malformed={snapshot.MalformedLines} fs-events={fsEventsTotal} fs/s={fsRate:0.00} busDropped={snapshot.BusDropped} busPublished={snapshot.BusPublished} busDepth={snapshot.BusDepth} allocatedDelta={allocatedDelta} allocated={allocatedNow} gen0Delta={gen0Delta} gen1Delta={gen1Delta} gen2Delta={gen2Delta}");
+            
             if (snapshot.TopKMessages.Count > 0)
             {
+                // TODO : verify the counts even work
                 Console.WriteLine("TopK:");
                 foreach (var kv in snapshot.TopKMessages)
                 {
@@ -214,6 +218,7 @@ namespace WatchStats.Core
                 }
             }
 
+            // TODO: idk if this is necessary
             // update baselines only when this was a regular interval (not the final forced report with elapsedSeconds==0)
             if (elapsedSeconds > 0)
             {
