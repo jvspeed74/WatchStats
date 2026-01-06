@@ -17,6 +17,7 @@ namespace WatchStats.Seed
         public int DelayMsBetweenIterations { get; init; } = 200;
         public long MaxTotalFileOperations { get; init; } = 100000;
         public int SummaryIntervalSeconds { get; init; } = 30;
+        public int ConcurrentWorkers { get; init; } = 8;
 
         public void Validate()
         {
@@ -34,6 +35,7 @@ namespace WatchStats.Seed
             if (DelayMsBetweenIterations < 0) throw new ArgumentOutOfRangeException(nameof(DelayMsBetweenIterations));
             if (MaxTotalFileOperations < 0) throw new ArgumentOutOfRangeException(nameof(MaxTotalFileOperations));
             if (SummaryIntervalSeconds < 1) throw new ArgumentOutOfRangeException(nameof(SummaryIntervalSeconds));
+            if (ConcurrentWorkers < 1) throw new ArgumentOutOfRangeException(nameof(ConcurrentWorkers));
         }
     }
 }

@@ -21,6 +21,14 @@ namespace WatchStats.Seed
             "Background task"
         };
 
+        private static long _totalLinesWritten;
+        private static long _createdFiles;
+        private static long _appendedFiles;
+        private static long _deletedFiles;
+        private static long _failures;
+        private static long _iterations;
+        private static long _activeWorkers;
+
         public static async Task<int> Main(string[] args)
         {
             // load configuration
@@ -67,32 +75,82 @@ namespace WatchStats.Seed
                 cts.Cancel();
             };
 
-            var rnd = new Random();
-
-            long totalLinesWritten = 0;
-            long createdFiles = 0;
-            long appendedFiles = 0;
-            long deletedFiles = 0;
-            long failures = 0;
-            long iterations = 0;
-
-            var lastSummary = DateTime.UtcNow;
             var startTime = DateTime.UtcNow;
 
-            Console.WriteLine("Starting seed writer. TempPath={0} MaxTotalFilesWritten={1}", tempPath, config.MaxTotalFileOperations);
+            Console.WriteLine("Starting seed writer. TempPath={0} MaxTotalFileOperations={1} ConcurrentWorkers={2}", 
+                tempPath, config.MaxTotalFileOperations, config.ConcurrentWorkers);
 
-            try
+            // Configure ThreadPool for maximum throughput
+            ThreadPool.GetMinThreads(out int minWorkerThreads, out int minCompletionPortThreads);
+            ThreadPool.SetMinThreads(Math.Max(minWorkerThreads, config.ConcurrentWorkers * 2), minCompletionPortThreads);
+
+            // Start summary reporter task
+            var summaryTask = Task.Run(async () =>
             {
                 while (!cts.IsCancellationRequested)
                 {
-                    iterations++;
-
-                    // check fail-safe
-                    if (config.MaxTotalFileOperations > 0 && createdFiles + appendedFiles + deletedFiles >= config.MaxTotalFileOperations)
+                    try
                     {
-                        Console.WriteLine("Reached MaxTotalFilesWritten ({0}), stopping.", config.MaxTotalFileOperations);
+                        await Task.Delay(TimeSpan.FromSeconds(config.SummaryIntervalSeconds), cts.Token).ConfigureAwait(false);
+                        PrintSummary(startTime);
+                    }
+                    catch (OperationCanceledException)
+                    {
                         break;
                     }
+                }
+            });
+
+            // Launch concurrent workers
+            var workerTasks = new Task[config.ConcurrentWorkers];
+            for (int i = 0; i < config.ConcurrentWorkers; i++)
+            {
+                int workerId = i;
+                workerTasks[i] = Task.Run(() => WorkerLoop(workerId, config, tempPath, cts.Token));
+            }
+
+            // Wait for all workers to complete
+            await Task.WhenAll(workerTasks).ConfigureAwait(false);
+
+            // Stop summary task
+            cts.Cancel();
+            try
+            {
+                await summaryTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected
+            }
+
+            Console.WriteLine("Shutting down. Final summary:");
+            PrintSummary(startTime);
+
+            return 0;
+        }
+
+        private static void WorkerLoop(int workerId, SeedConfig config, string tempPath, CancellationToken ct)
+        {
+            Interlocked.Increment(ref _activeWorkers);
+            var rnd = new Random(Guid.NewGuid().GetHashCode()); // Thread-local random with unique seed
+
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    // Check fail-safe
+                    if (config.MaxTotalFileOperations > 0)
+                    {
+                        var totalOps = Interlocked.Read(ref _createdFiles) + 
+                                      Interlocked.Read(ref _appendedFiles) + 
+                                      Interlocked.Read(ref _deletedFiles);
+                        if (totalOps >= config.MaxTotalFileOperations)
+                        {
+                            break;
+                        }
+                    }
+
+                    Interlocked.Increment(ref _iterations);
 
                     try
                     {
@@ -112,16 +170,25 @@ namespace WatchStats.Seed
                                 try
                                 {
                                     File.Delete(filePath);
-                                    deletedFiles++;
-                                    Console.WriteLine("Deleted: {0}", filePath);
-                                    // skip writing for this iteration; continue to next random draw
-                                    await Task.Delay(config.DelayMsBetweenIterations, cts.Token).ConfigureAwait(false);
+                                    Interlocked.Increment(ref _deletedFiles);
+                                    if ((Interlocked.Read(ref _iterations) & 0xFF) == 0)
+                                    {
+                                        Console.WriteLine("[Worker {0}] Deleted: {1}", workerId, filePath);
+                                    }
+                                    // Apply delay and continue to next iteration
+                                    if (config.DelayMsBetweenIterations > 0)
+                                    {
+                                        Thread.Sleep(config.DelayMsBetweenIterations);
+                                    }
                                     continue;
                                 }
                                 catch (Exception ex)
                                 {
-                                    failures++;
-                                    Console.Error.WriteLine("Failed to delete {0}: {1}", filePath, ex.Message);
+                                    Interlocked.Increment(ref _failures);
+                                    if ((Interlocked.Read(ref _failures) & 0x1F) == 1)
+                                    {
+                                        Console.Error.WriteLine("[Worker {0}] Failed to delete {1}: {2}", workerId, filePath, ex.Message);
+                                    }
                                 }
                             }
                         }
@@ -145,73 +212,78 @@ namespace WatchStats.Seed
                                 }
                             }
 
-                            totalLinesWritten += linesToAdd;
-                            if (isNew) createdFiles++; else appendedFiles++;
+                            Interlocked.Add(ref _totalLinesWritten, linesToAdd);
+                            if (isNew)
+                            {
+                                Interlocked.Increment(ref _createdFiles);
+                            }
+                            else
+                            {
+                                Interlocked.Increment(ref _appendedFiles);
+                            }
 
                             // occasionally print a small log line
-                            if ((iterations & 0xF) == 0)
+                            if ((Interlocked.Read(ref _iterations) & 0xFF) == 0)
                             {
-                                Console.WriteLine("Wrote {0} lines to {1} (totalWrites={2})", linesToAdd, filePath, totalLinesWritten);
+                                Console.WriteLine("[Worker {0}] Wrote {1} lines to {2} (totalWrites={3})", 
+                                    workerId, linesToAdd, Path.GetFileName(filePath), Interlocked.Read(ref _totalLinesWritten));
                             }
                         }
                         catch (Exception ex)
                         {
-                            failures++;
-                            Console.Error.WriteLine("Failed to write to {0}: {1}", filePath, ex.Message);
+                            Interlocked.Increment(ref _failures);
+                            if ((Interlocked.Read(ref _failures) & 0x1F) == 1)
+                            {
+                                Console.Error.WriteLine("[Worker {0}] Failed to write to {1}: {2}", workerId, filePath, ex.Message);
+                            }
                         }
                     }
-                    catch (OperationCanceledException) when (cts.IsCancellationRequested)
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
                     {
                         break;
                     }
                     catch (Exception ex)
                     {
-                        failures++;
-                        Console.Error.WriteLine("Iteration failure: " + ex);
-                    }
-
-                    // summary
-                    var now = DateTime.UtcNow;
-                    if ((now - lastSummary).TotalSeconds >= config.SummaryIntervalSeconds)
-                    {
-                        lastSummary = now;
-                        var elapsed = now - startTime;
-                        Console.WriteLine("--- Summary ---");
-                        Console.WriteLine("Elapsed: {0}", elapsed);
-                        Console.WriteLine("Iterations: {0}", iterations);
-                        Console.WriteLine("Total lines written: {0}", totalLinesWritten);
-                        Console.WriteLine("Created files: {0}", createdFiles);
-                        Console.WriteLine("Appended files: {0}", appendedFiles);
-                        Console.WriteLine("Deleted files: {0}", deletedFiles);
-                        Console.WriteLine("Failures: {0}", failures);
-                        Console.WriteLine("---------------");
+                        Interlocked.Increment(ref _failures);
+                        if ((Interlocked.Read(ref _failures) & 0x1F) == 1)
+                        {
+                            Console.Error.WriteLine("[Worker {0}] Iteration failure: {1}", workerId, ex.Message);
+                        }
                     }
 
                     // delay between iterations
-                    try
+                    if (config.DelayMsBetweenIterations > 0)
                     {
-                        await Task.Delay(config.DelayMsBetweenIterations, cts.Token).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException) when (cts.IsCancellationRequested)
-                    {
-                        break;
+                        try
+                        {
+                            Thread.Sleep(config.DelayMsBetweenIterations);
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            break;
+                        }
                     }
                 }
             }
             finally
             {
-                Console.WriteLine("Shutting down. Final summary:");
-                var elapsed = DateTime.UtcNow - startTime;
-                Console.WriteLine("Elapsed: {0}", elapsed);
-                Console.WriteLine("Iterations: {0}", iterations);
-                Console.WriteLine("Total lines written: {0}", totalLinesWritten);
-                Console.WriteLine("Created files: {0}", createdFiles);
-                Console.WriteLine("Appended files: {0}", appendedFiles);
-                Console.WriteLine("Deleted files: {0}", deletedFiles);
-                Console.WriteLine("Failures: {0}", failures);
+                Interlocked.Decrement(ref _activeWorkers);
             }
+        }
 
-            return 0;
+        private static void PrintSummary(DateTime startTime)
+        {
+            var elapsed = DateTime.UtcNow - startTime;
+            Console.WriteLine("--- Summary ---");
+            Console.WriteLine("Elapsed: {0}", elapsed);
+            Console.WriteLine("Active workers: {0}", Interlocked.Read(ref _activeWorkers));
+            Console.WriteLine("Iterations: {0}", Interlocked.Read(ref _iterations));
+            Console.WriteLine("Total lines written: {0}", Interlocked.Read(ref _totalLinesWritten));
+            Console.WriteLine("Created files: {0}", Interlocked.Read(ref _createdFiles));
+            Console.WriteLine("Appended files: {0}", Interlocked.Read(ref _appendedFiles));
+            Console.WriteLine("Deleted files: {0}", Interlocked.Read(ref _deletedFiles));
+            Console.WriteLine("Failures: {0}", Interlocked.Read(ref _failures));
+            Console.WriteLine("---------------");
         }
     }
 }
