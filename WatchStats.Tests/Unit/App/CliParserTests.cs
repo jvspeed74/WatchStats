@@ -3,7 +3,7 @@ using System.IO;
 using Xunit;
 using WatchStats.App;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.App
 {
     public class CliParserTests : IDisposable
     {

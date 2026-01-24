@@ -4,7 +4,7 @@ using WatchStats.App;
 using Xunit;
 
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.App
 {
     public class AppConfigTests : IDisposable
     {

@@ -8,7 +8,7 @@ using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.Concurrency;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.Core.Concurrency
 {
     public class BoundedEventBusTests
     {

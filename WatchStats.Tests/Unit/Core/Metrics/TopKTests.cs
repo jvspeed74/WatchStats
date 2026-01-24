@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xunit;
-using WatchStats.Core;
 using WatchStats.Core.Metrics;
+using Xunit;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.Core.Metrics
 {
     public class TopKTests
     {

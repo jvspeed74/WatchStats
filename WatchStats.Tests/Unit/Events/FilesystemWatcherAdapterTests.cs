@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.Concurrency;
 using WatchStats.Core.Events;
 using WatchStats.Core.IO;
+using Xunit;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.Events
 {
     public class FilesystemWatcherAdapterTests : IDisposable
     {

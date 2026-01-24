@@ -2,10 +2,9 @@
 using System.IO;
 using System.Text;
 using Xunit;
-using WatchStats.Core;
 using WatchStats.Core.IO;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.Core.IO
 {
     public class FileTailerTests : IDisposable
     {

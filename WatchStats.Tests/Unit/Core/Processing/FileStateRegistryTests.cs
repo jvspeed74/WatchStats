@@ -6,7 +6,7 @@ using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.Processing;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.Core.Processing
 {
     public class FileStateRegistryTests
     {

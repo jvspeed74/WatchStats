@@ -8,7 +8,7 @@ using WatchStats.Core.Metrics;
 using WatchStats.Core.Processing;
 using Xunit;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Integration
 {
     public class ReporterTests
     {

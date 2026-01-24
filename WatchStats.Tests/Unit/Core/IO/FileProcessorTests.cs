@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.IO;
 using WatchStats.Core.Metrics;
 using WatchStats.Core.Processing;
+using Xunit;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.Core.IO
 {
     public class FileProcessorTests : IDisposable
     {

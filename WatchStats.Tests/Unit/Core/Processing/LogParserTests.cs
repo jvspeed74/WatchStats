@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Text;
-using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.Processing;
+using Xunit;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Unit.Core.Processing
 {
     public class LogParserTests
     {

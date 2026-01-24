@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading;
-using Xunit;
 using WatchStats.Core;
 using WatchStats.Core.Metrics;
+using Xunit;
 
-namespace WatchStats.Tests
+namespace WatchStats.Tests.Integration
 {
     public class WorkerStatsSwapTests
     {
