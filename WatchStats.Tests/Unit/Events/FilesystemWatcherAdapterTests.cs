@@ -1,55 +1,46 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using WatchStats.Core;
-using WatchStats.Core.Concurrency;
+﻿using WatchStats.Core.Concurrency;
 using WatchStats.Core.Events;
 using WatchStats.Core.IO;
-using Xunit;
 
-namespace WatchStats.Tests.Unit.Events
+namespace WatchStats.Tests.Unit.Events;
+
+public class FilesystemWatcherAdapterTests : IDisposable
 {
-    public class FilesystemWatcherAdapterTests : IDisposable
+    private readonly string _dir;
+
+    public FilesystemWatcherAdapterTests()
     {
-        private readonly string _dir;
+        _dir = Path.Combine(Path.GetTempPath(), "watchstats_watcher_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_dir);
+    }
 
-        public FilesystemWatcherAdapterTests()
+    public void Dispose()
+    {
+        try
         {
-            _dir = Path.Combine(Path.GetTempPath(), "watchstats_watcher_" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(_dir);
+            Directory.Delete(_dir, true);
         }
-
-        public void Dispose()
+        catch
         {
-            try
-            {
-                Directory.Delete(_dir, true);
-            }
-            catch
-            {
-            }
         }
+    }
 
-        [Fact]
-        public void CreatedLogFile_PublishesEventToBus()
-        {
-            var bus = new BoundedEventBus<FsEvent>(1000);
-            using var adapter = new FilesystemWatcherAdapter(_dir, bus);
-            adapter.Start();
+    [Fact]
+    public void CreatedLogFile_PublishesEventToBus()
+    {
+        var bus = new BoundedEventBus<FsEvent>(1000);
+        using var adapter = new FilesystemWatcherAdapter(_dir, bus);
+        adapter.Start();
 
-            var path = Path.Combine(_dir, "x.log");
-            File.WriteAllText(path, "hello");
+        var path = Path.Combine(_dir, "x.log");
+        File.WriteAllText(path, "hello");
 
-            // Wait up to 2s for event propagation
-            int attempts = 0;
-            while (bus.PublishedCount == 0 && attempts++ < 20)
-            {
-                Thread.Sleep(100);
-            }
+        // Wait up to 2s for event propagation
+        var attempts = 0;
+        while (bus.PublishedCount == 0 && attempts++ < 20) Thread.Sleep(100);
 
-            adapter.Stop();
+        adapter.Stop();
 
-            Assert.True(bus.PublishedCount > 0);
-        }
+        Assert.True(bus.PublishedCount > 0);
     }
 }

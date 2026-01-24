@@ -1,83 +1,76 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using WatchStats.Core;
-using WatchStats.Core.Processing;
+﻿using WatchStats.Core.Processing;
 
-namespace WatchStats.Tests.Unit.Core.Processing
+namespace WatchStats.Tests.Unit.Core.Processing;
+
+public class FileStateRegistryTests
 {
-    public class FileStateRegistryTests
+    [Fact]
+    public void FinalizeDelete_RemovesStateAndIncrementsEpoch()
     {
-        [Fact]
-        public void FinalizeDelete_RemovesStateAndIncrementsEpoch()
+        var reg = new FileStateRegistry();
+        var fs = reg.GetOrCreate("/tmp/x.log");
+        lock (fs.Gate)
         {
-            var reg = new FileStateRegistry();
-            var fs = reg.GetOrCreate("/tmp/x.log");
-            lock (fs.Gate)
-            {
-                fs.Offset = 123;
-                fs.Carry.Append(new ReadOnlySpan<byte>(new byte[] { 1, 2, 3 }));
-            }
-
-            reg.FinalizeDelete("/tmp/x.log");
-
-            // state should be removed
-            Assert.False(reg.TryGet("/tmp/x.log", out _));
-            // epoch should be incremented
-            Assert.Equal(1, reg.GetCurrentEpoch("/tmp/x.log"));
-
-            // create again -> new generation should be epoch + 1
-            var fs2 = reg.GetOrCreate("/tmp/x.log");
-            Assert.Equal(2, fs2.Generation);
-            lock (fs2.Gate)
-            {
-                Assert.Equal(0, fs2.Offset);
-                Assert.Equal(0, fs2.Carry.Length);
-            }
+            fs.Offset = 123;
+            fs.Carry.Append(new ReadOnlySpan<byte>(new byte[] { 1, 2, 3 }));
         }
 
-        [Fact]
-        public void MarkDeletePending_ClearsDirty()
+        reg.FinalizeDelete("/tmp/x.log");
+
+        // state should be removed
+        Assert.False(reg.TryGet("/tmp/x.log", out _));
+        // epoch should be incremented
+        Assert.Equal(1, reg.GetCurrentEpoch("/tmp/x.log"));
+
+        // create again -> new generation should be epoch + 1
+        var fs2 = reg.GetOrCreate("/tmp/x.log");
+        Assert.Equal(2, fs2.Generation);
+        lock (fs2.Gate)
         {
-            var fs = new FileState();
-            fs.MarkDirtyIfAllowed();
-            Assert.True(fs.IsDirty);
-            fs.MarkDeletePending();
-            Assert.True(fs.IsDeletePending);
-            Assert.False(fs.IsDirty);
+            Assert.Equal(0, fs2.Offset);
+            Assert.Equal(0, fs2.Carry.Length);
         }
+    }
 
-        [Fact]
-        public void MarkDirty_DoesNotSetWhenDeletePending()
-        {
-            var fs = new FileState();
-            fs.MarkDeletePending();
-            fs.MarkDirtyIfAllowed();
-            Assert.True(fs.IsDeletePending);
-            Assert.False(fs.IsDirty);
-        }
+    [Fact]
+    public void MarkDeletePending_ClearsDirty()
+    {
+        var fs = new FileState();
+        fs.MarkDirtyIfAllowed();
+        Assert.True(fs.IsDirty);
+        fs.MarkDeletePending();
+        Assert.True(fs.IsDeletePending);
+        Assert.False(fs.IsDirty);
+    }
 
-        [Fact]
-        public void Concurrent_GetOrCreate_ReturnsSameInstanceUntilDeleted()
-        {
-            var reg = new FileStateRegistry();
-            string path = "/tmp/concurrent.log";
+    [Fact]
+    public void MarkDirty_DoesNotSetWhenDeletePending()
+    {
+        var fs = new FileState();
+        fs.MarkDeletePending();
+        fs.MarkDirtyIfAllowed();
+        Assert.True(fs.IsDeletePending);
+        Assert.False(fs.IsDirty);
+    }
 
-            FileState[] results = new FileState[16];
-            Parallel.For(0, 16, i => { results[i] = reg.GetOrCreate(path); });
+    [Fact]
+    public void Concurrent_GetOrCreate_ReturnsSameInstanceUntilDeleted()
+    {
+        var reg = new FileStateRegistry();
+        var path = "/tmp/concurrent.log";
 
-            // all should point to the same instance
-            var first = results[0];
-            foreach (var r in results) Assert.Same(first, r);
+        var results = new FileState[16];
+        Parallel.For(0, 16, i => { results[i] = reg.GetOrCreate(path); });
 
-            // finalize delete
-            reg.FinalizeDelete(path);
+        // all should point to the same instance
+        var first = results[0];
+        foreach (var r in results) Assert.Same(first, r);
 
-            // new creation returns a different instance
-            var n = reg.GetOrCreate(path);
-            Assert.NotSame(first, n);
-        }
+        // finalize delete
+        reg.FinalizeDelete(path);
+
+        // new creation returns a different instance
+        var n = reg.GetOrCreate(path);
+        Assert.NotSame(first, n);
     }
 }
