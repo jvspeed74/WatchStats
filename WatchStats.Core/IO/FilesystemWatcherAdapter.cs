@@ -7,12 +7,19 @@ namespace WatchStats.Core.IO
 {
     /// <summary>
     /// Adapter that wraps <see cref="FileSystemWatcher"/> and publishes <see cref="FsEvent"/> events to a <see cref="BoundedEventBus{T}"/>.
+    /// <para>
+    /// <b>Platform Compatibility:</b> This adapter uses .NET FileSystemWatcher which has known limitations on Linux:
+    /// - Requires sufficient inotify watches (check /proc/sys/fs/inotify/max_user_watches)
+    /// - May require UsePolling to be enabled for reliable event detection
+    /// - Some NotifyFilter combinations may not work as expected
+    /// </para>
     /// </summary>
     public sealed class FilesystemWatcherAdapter : IDisposable
     {
         private static class Events
         {
             public static readonly EventId WatcherOverflow = new(1, "watcher_overflow");
+            public static readonly EventId PlatformWarning = new(2, "platform_warning");
         }
 
         private readonly BoundedEventBus<FsEvent> _bus;
@@ -38,6 +45,17 @@ namespace WatchStats.Core.IO
             _isProcessable = isProcessable ?? DefaultIsProcessable;
             _logger = logger;
             _watchPath = path;
+
+            // Log platform compatibility warning on Linux
+            if (OperatingSystem.IsLinux())
+            {
+                _logger?.LogWarning(Events.PlatformWarning,
+                    "Running on Linux: FileSystemWatcher may have limited functionality. " +
+                    "Events may not be received reliably. Consider increasing inotify limits " +
+                    "(/proc/sys/fs/inotify/max_user_watches) or using polling mode. " +
+                    "WatchPath={WatchPath}",
+                    path);
+            }
 
             // TODO: Consider validating that the path exists and is a directory before creating the watcher
             // Pre-create watcher but do not enable until Start()

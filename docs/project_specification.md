@@ -223,6 +223,27 @@ Long-running instability.
 
 ---
 
+### Risk 6: Platform Compatibility (Linux)
+
+**Description:**
+FileSystemWatcher has known limitations on Linux systems. Events may not be received reliably, causing the application to fail to detect file changes.
+
+**Impact:**
+Critical - Application does not function on Linux without manual configuration.
+
+**Mitigation:**
+
+* Document Linux limitations prominently
+* Log platform warnings at startup on Linux
+* Provide configuration guidance for inotify limits
+* Recommend Windows/macOS for production use
+* Consider polling-based alternative for future releases
+
+**Current Status:** 
+⚠️ **Limited Linux Support** - Requires manual inotify tuning. See [Platform Compatibility](platform-compatibility.md) for details.
+
+---
+
 ## 9. Success Criteria
 
 The project is considered successful if:
