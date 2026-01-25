@@ -1,4 +1,6 @@
-﻿namespace WatchStats.Core.Concurrency
+﻿using Microsoft.Extensions.Logging;
+
+namespace WatchStats.Core.Concurrency
 {
     /// <summary>
     /// Thread-safe bounded FIFO event bus with drop-newest semantics when full.
@@ -6,9 +8,15 @@
     /// <typeparam name="T">Type of events carried by the bus.</typeparam>
     public sealed class BoundedEventBus<T>
     {
+        private static class Events
+        {
+            public static readonly EventId BusDropNewest = new(2, "bus_drop_newest");
+        }
+
         private readonly int _capacity;
         private readonly Queue<T> _queue = new Queue<T>();
         private readonly object _lock = new object();
+        private readonly ILogger<BoundedEventBus<T>>? _logger;
         private bool _stopped;
 
         private long _published;
@@ -18,11 +26,13 @@
         /// Creates a new bounded event bus with the provided capacity.
         /// </summary>
         /// <param name="capacity">Maximum number of items the bus will hold; must be &gt; 0.</param>
+        /// <param name="logger">Optional logger for structured logging.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="capacity"/> is not positive.</exception>
-        public BoundedEventBus(int capacity)
+        public BoundedEventBus(int capacity, ILogger<BoundedEventBus<T>>? logger = null)
         {
             if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity));
             _capacity = capacity;
+            _logger = logger;
         }
 
         /// <summary>
@@ -41,7 +51,10 @@
 
                 if (_queue.Count >= _capacity)
                 {
-                    Interlocked.Increment(ref _dropped);
+                    var newDropped = Interlocked.Increment(ref _dropped);
+                    _logger?.LogWarning(Events.BusDropNewest,
+                        "Event bus full, dropping newest event. Capacity={Capacity} Dropped={Dropped}",
+                        _capacity, newDropped);
                     return false; // drop newest
                 }
 

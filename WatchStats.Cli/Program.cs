@@ -44,16 +44,23 @@ services.AddSingleton(config);
 
 // Core components (all singletons)
 services.AddSingleton<BoundedEventBus<FsEvent>>(sp => 
-    new BoundedEventBus<FsEvent>(config.BusCapacity));
+    new BoundedEventBus<FsEvent>(
+        config.BusCapacity,
+        sp.GetService<ILogger<BoundedEventBus<FsEvent>>>()));
 
 services.AddSingleton<FileStateRegistry>(sp =>
-    new FileStateRegistry());
+    new FileStateRegistry(
+        sp.GetService<ILogger<FileStateRegistry>>()));
 
 services.AddSingleton<FileTailer>(sp => 
-    new FileTailer());
+    new FileTailer(
+        sp.GetService<ILogger<FileTailer>>()));
 
 services.AddSingleton<FileProcessor>(sp =>
-    new FileProcessor(sp.GetRequiredService<FileTailer>()));
+    new FileProcessor(
+        sp.GetRequiredService<FileTailer>(),
+        sp.GetRequiredService<FileStateRegistry>(),
+        sp.GetService<ILogger<FileProcessor>>()));
 
 services.AddSingleton<WorkerStats[]>(sp =>
 {
@@ -69,7 +76,9 @@ services.AddSingleton<ProcessingCoordinator>(sp =>
         sp.GetRequiredService<FileStateRegistry>(),
         sp.GetRequiredService<FileProcessor>(),
         sp.GetRequiredService<WorkerStats[]>(),
-        config.Workers));
+        config.Workers,
+        200,
+        sp.GetService<ILogger<ProcessingCoordinator>>()));
 
 services.AddSingleton<Reporter>(sp =>
     new Reporter(
@@ -81,7 +90,9 @@ services.AddSingleton<Reporter>(sp =>
 services.AddSingleton<FilesystemWatcherAdapter>(sp =>
     new FilesystemWatcherAdapter(
         config.WatchPath,
-        sp.GetRequiredService<BoundedEventBus<FsEvent>>()));
+        sp.GetRequiredService<BoundedEventBus<FsEvent>>(),
+        null,
+        sp.GetService<ILogger<FilesystemWatcherAdapter>>()));
 
 services.AddSingleton<AppOrchestrator>();
 

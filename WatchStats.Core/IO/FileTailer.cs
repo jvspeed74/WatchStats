@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using Microsoft.Extensions.Logging;
 
 namespace WatchStats.Core.IO
 {
@@ -7,8 +8,24 @@ namespace WatchStats.Core.IO
     /// </summary>
     public sealed class FileTailer
     {
+        private static class Events
+        {
+            public static readonly EventId TailerIoError = new(4, "tailer_io_error");
+        }
+
         // TODO: Consider making chunk size configurable per file type or based on available memory
         private const int DefaultChunkSize = 64 * 1024;
+
+        private readonly ILogger<FileTailer>? _logger;
+
+        /// <summary>
+        /// Creates a new <see cref="FileTailer"/>.
+        /// </summary>
+        /// <param name="logger">Optional logger for structured logging.</param>
+        public FileTailer(ILogger<FileTailer>? logger = null)
+        {
+            _logger = logger;
+        }
 
         /// <summary>
         /// Reads bytes appended to <paramref name="path"/> since <paramref name="offset"/> and invokes <paramref name="onChunk"/> for each chunk read.
@@ -20,6 +37,8 @@ namespace WatchStats.Core.IO
         /// <param name="offset">On input the offset to start reading from; on successful read this value is advanced to the new offset.</param>
         /// <param name="onChunk">Callback invoked for each chunk read. The provided <see cref="ReadOnlySpan{Byte}"/> must not be retained beyond the callback.</param>
         /// <param name="totalBytesRead">Outputs the total number of bytes read during this call.</param>
+        /// <param name="previousSize">When truncation is detected, outputs the previous offset; otherwise 0.</param>
+        /// <param name="currentSize">When truncation is detected, outputs the current file length; otherwise 0.</param>
         /// <param name="chunkSize">Maximum chunk size to use when reading; when &lt;= 0 the default of 64 KiB is used.</param>
         /// <returns>A <see cref="TailReadStatus"/> describing the outcome of the read operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="path"/> or <paramref name="onChunk"/> is <c>null</c>.</exception>
@@ -28,6 +47,8 @@ namespace WatchStats.Core.IO
             ref long offset,
             Action<ReadOnlySpan<byte>> onChunk,
             out int totalBytesRead,
+            out long previousSize,
+            out long currentSize,
             int chunkSize = DefaultChunkSize)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
@@ -35,6 +56,8 @@ namespace WatchStats.Core.IO
             if (chunkSize <= 0) chunkSize = DefaultChunkSize;
 
             totalBytesRead = 0;
+            previousSize = 0;
+            currentSize = 0;
             bool truncated = false;
 
             byte[]? buffer = null;
@@ -59,6 +82,8 @@ namespace WatchStats.Core.IO
                 if (length < offset)
                 {
                     // truncation detected
+                    previousSize = offset;
+                    currentSize = length;
                     effectiveOffset = 0;
                     truncated = true;
                 }
@@ -104,21 +129,33 @@ namespace WatchStats.Core.IO
             catch (FileNotFoundException)
             {
                 totalBytesRead = 0;
+                previousSize = 0;
+                currentSize = 0;
                 return TailReadStatus.FileNotFound;
             }
             catch (DirectoryNotFoundException)
             {
                 totalBytesRead = 0;
+                previousSize = 0;
+                currentSize = 0;
                 return TailReadStatus.FileNotFound;
             }
             catch (UnauthorizedAccessException)
             {
                 totalBytesRead = 0;
+                previousSize = 0;
+                currentSize = 0;
                 return TailReadStatus.AccessDenied;
             }
-            catch (IOException)
+            catch (IOException ioEx)
             {
                 totalBytesRead = 0;
+                previousSize = 0;
+                currentSize = 0;
+                _logger?.LogError(Events.TailerIoError,
+                    ioEx,
+                    "IO error reading file. Path={Path}",
+                    path);
                 return TailReadStatus.IoError;
             }
             finally

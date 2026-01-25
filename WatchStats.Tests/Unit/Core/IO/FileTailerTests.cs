@@ -40,7 +40,7 @@ public class FileTailerTests : IDisposable
         var total = 0;
         var sb = new StringBuilder();
 
-        var status = tailer.ReadAppended(p, ref offset, s => sb.Append(Encoding.UTF8.GetString(s)), out total);
+        var status = tailer.ReadAppended(p, ref offset, s => sb.Append(Encoding.UTF8.GetString(s)), out total, out _, out _);
         Assert.Equal(TailReadStatus.ReadSome, status);
         Assert.Equal(5, total);
         Assert.Equal("hello", sb.ToString());
@@ -49,7 +49,7 @@ public class FileTailerTests : IDisposable
         // append more
         File.AppendAllText(p, " world");
         sb.Clear();
-        status = tailer.ReadAppended(p, ref offset, s => sb.Append(Encoding.UTF8.GetString(s)), out total);
+        status = tailer.ReadAppended(p, ref offset, s => sb.Append(Encoding.UTF8.GetString(s)), out total, out _, out _);
         Assert.Equal(TailReadStatus.ReadSome, status);
         Assert.Equal(6, total);
         Assert.Equal(" world", sb.ToString());
@@ -64,13 +64,13 @@ public class FileTailerTests : IDisposable
 
         var tailer = new FileTailer();
         long offset = 0;
-        tailer.ReadAppended(p, ref offset, _ => { }, out var total);
+        tailer.ReadAppended(p, ref offset, _ => { }, out var total, out _, out _);
         Assert.Equal(8, offset);
 
         // truncate file to smaller content
         File.WriteAllText(p, "abc");
 
-        var status = tailer.ReadAppended(p, ref offset, s => { }, out var tot2);
+        var status = tailer.ReadAppended(p, ref offset, s => { }, out var tot2, out _, out _);
         Assert.True(status == TailReadStatus.TruncatedReset || status == TailReadStatus.ReadSome);
         // offset should now be >= 3 (effectiveOffset 0 + bytes read)
         Assert.True(offset <= 3 || offset == tot2);
@@ -84,11 +84,11 @@ public class FileTailerTests : IDisposable
 
         var tailer = new FileTailer();
         long offset = 0;
-        tailer.ReadAppended(p, ref offset, _ => { }, out var total);
+        tailer.ReadAppended(p, ref offset, _ => { }, out var total, out _, out _);
 
         File.Delete(p);
 
-        var status = tailer.ReadAppended(p, ref offset, _ => { }, out var tot2);
+        var status = tailer.ReadAppended(p, ref offset, _ => { }, out var tot2, out _, out _);
         Assert.True(status == TailReadStatus.FileNotFound || status == TailReadStatus.NoData ||
                     status == TailReadStatus.TruncatedReset);
     }

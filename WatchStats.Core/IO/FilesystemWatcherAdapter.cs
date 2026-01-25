@@ -1,4 +1,5 @@
-﻿using WatchStats.Core.Concurrency;
+﻿using Microsoft.Extensions.Logging;
+using WatchStats.Core.Concurrency;
 using WatchStats.Core.Events;
 using WatchStats.Core.Metrics;
 
@@ -9,9 +10,16 @@ namespace WatchStats.Core.IO
     /// </summary>
     public sealed class FilesystemWatcherAdapter : IDisposable
     {
+        private static class Events
+        {
+            public static readonly EventId WatcherOverflow = new(1, "watcher_overflow");
+        }
+
         private readonly BoundedEventBus<FsEvent> _bus;
         private readonly Func<string, bool> _isProcessable;
+        private readonly ILogger<FilesystemWatcherAdapter>? _logger;
         private FileSystemWatcher? _watcher;
+        private readonly string _watchPath;
         private long _errorCount;
 
         /// <summary>
@@ -21,16 +29,19 @@ namespace WatchStats.Core.IO
         /// <param name="path">Directory path to watch.</param>
         /// <param name="bus">Event bus to publish discovered events to.</param>
         /// <param name="isProcessable">Optional predicate to filter which file paths are considered processable.</param>
+        /// <param name="logger">Optional logger for structured logging.</param>
         public FilesystemWatcherAdapter(string path, BoundedEventBus<FsEvent> bus,
-            Func<string, bool>? isProcessable = null)
+            Func<string, bool>? isProcessable = null, ILogger<FilesystemWatcherAdapter>? logger = null)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
             _isProcessable = isProcessable ?? DefaultIsProcessable;
+            _logger = logger;
+            _watchPath = path;
 
             // TODO: Consider validating that the path exists and is a directory before creating the watcher
             // Pre-create watcher but do not enable until Start()
-            _watcher = new FileSystemWatcher(path)
+            _watcher = new FileSystemWatcher(_watchPath)
             {
                 IncludeSubdirectories = false,
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size,
@@ -102,7 +113,9 @@ namespace WatchStats.Core.IO
         private void OnError(object sender, ErrorEventArgs e)
         {
             Interlocked.Increment(ref _errorCount);
-            // TODO: Add structured logging for FileSystemWatcher errors to diagnose buffer overflow issues
+            _logger?.LogWarning(Events.WatcherOverflow, 
+                "Filesystem watcher buffer overflowed. WatchPath={WatchPath}", 
+                _watchPath);
             // do not rethrow; just record
         }
 

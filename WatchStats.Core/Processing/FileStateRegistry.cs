@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace WatchStats.Core.Processing;
 
@@ -7,9 +8,24 @@ namespace WatchStats.Core.Processing;
 /// </summary>
 public sealed class FileStateRegistry
 {
+    private static class Events
+    {
+        public static readonly EventId FileTruncateDetected = new(3, "file_truncate_detected");
+    }
+
     // TODO: Consider adding a cleanup mechanism for orphaned FileState entries when files are no longer being watched
     private readonly ConcurrentDictionary<string, FileState> _states = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, int> _epochs = new(StringComparer.Ordinal);
+    private readonly ILogger<FileStateRegistry>? _logger;
+
+    /// <summary>
+    /// Creates a new <see cref="FileStateRegistry"/>.
+    /// </summary>
+    /// <param name="logger">Optional logger for structured logging.</param>
+    public FileStateRegistry(ILogger<FileStateRegistry>? logger = null)
+    {
+        _logger = logger;
+    }
 
     /// <summary>
     /// Gets an existing <see cref="FileState"/> for <paramref name="path"/> or creates a new one with a generation based on the current epoch.
@@ -75,5 +91,18 @@ public sealed class FileStateRegistry
     {
         _epochs.TryGetValue(path, out var e);
         return e;
+    }
+
+    /// <summary>
+    /// Logs a file truncation detection event.
+    /// </summary>
+    /// <param name="path">Path of the truncated file.</param>
+    /// <param name="previousSize">Previous file size/offset.</param>
+    /// <param name="currentSize">Current file size.</param>
+    internal void LogTruncation(string path, long previousSize, long currentSize)
+    {
+        _logger?.LogWarning(Events.FileTruncateDetected,
+            "File truncation detected. Path={Path} PreviousSize={PreviousSize} CurrentSize={CurrentSize}",
+            path, previousSize, currentSize);
     }
 }

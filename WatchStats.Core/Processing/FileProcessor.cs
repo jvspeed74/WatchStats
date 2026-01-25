@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using WatchStats.Core.IO;
 using WatchStats.Core.Metrics;
 
@@ -31,16 +32,27 @@ namespace WatchStats.Core.Processing
     /// </summary>
     public sealed class FileProcessor : IFileProcessor
     {
+        private static class Events
+        {
+            public static readonly EventId WorkerBatchProcessed = new(5, "worker_batch_processed");
+        }
+
         private readonly FileTailer _tailer;
+        private readonly FileStateRegistry? _registry;
+        private readonly ILogger<FileProcessor>? _logger;
 
         /// <summary>
         /// Creates a new <see cref="FileProcessor"/>. An optional <see cref="FileTailer"/> may be supplied
         /// (useful for tests); when <c>null</c> a default <see cref="FileTailer"/> is created.
         /// </summary>
         /// <param name="tailer">Optional tailer used to read appended bytes from files.</param>
-        public FileProcessor(FileTailer? tailer = null)
+        /// <param name="registry">Optional registry for logging truncation events.</param>
+        /// <param name="logger">Optional logger for structured logging.</param>
+        public FileProcessor(FileTailer? tailer = null, FileStateRegistry? registry = null, ILogger<FileProcessor>? logger = null)
         {
             _tailer = tailer ?? new FileTailer();
+            _registry = registry;
+            _logger = logger;
         }
 
         /// <summary>
@@ -59,6 +71,9 @@ namespace WatchStats.Core.Processing
             // Precondition: caller must hold state.Gate. We won't double-check locking here, but document it.
             // Use local offset to avoid advancing state.Offset until processing completes.
             long localOffset = state.Offset;
+            var processingStartTime = DateTime.UtcNow;
+            long startLinesProcessed = stats.LinesProcessed;
+            long startMalformed = stats.MalformedLines;
 
             TailReadStatus status = _tailer.ReadAppended(path, ref localOffset, chunk =>
             {
@@ -88,7 +103,21 @@ namespace WatchStats.Core.Processing
                         stats.Histogram.Add(v);
                     }
                 });
-            }, out var totalBytesRead, chunkSize);
+            }, out var totalBytesRead, out var previousSize, out var currentSize, chunkSize);
+
+            // Log worker batch processed (Debug level)
+            if (totalBytesRead > 0 || status == TailReadStatus.TruncatedReset)
+            {
+                var duration = (DateTime.UtcNow - processingStartTime).TotalMilliseconds;
+                var linesProcessedInBatch = stats.LinesProcessed - startLinesProcessed;
+                var malformedInBatch = stats.MalformedLines - startMalformed;
+                
+                // Note: workerId is not available here - it's tracked by ProcessingCoordinator
+                // We log without workerId, or we could add it as a parameter if needed
+                _logger?.LogDebug(Events.WorkerBatchProcessed,
+                    "Worker batch processed. LinesProcessed={LinesProcessed} MalformedLines={MalformedLines} DurationMs={DurationMs}",
+                    linesProcessedInBatch, malformedInBatch, (int)duration);
+            }
 
             // handle status counters
             switch (status)
@@ -104,6 +133,8 @@ namespace WatchStats.Core.Processing
                     break;
                 case TailReadStatus.TruncatedReset:
                     stats.TruncationResetCount++;
+                    // Log truncation event via FileStateRegistry if available
+                    _registry?.LogTruncation(path, previousSize, currentSize);
                     break;
                 case TailReadStatus.NoData:
                 case TailReadStatus.ReadSome:
