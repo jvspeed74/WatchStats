@@ -85,7 +85,9 @@ services.AddSingleton<Reporter>(sp =>
         sp.GetRequiredService<WorkerStats[]>(),
         sp.GetRequiredService<BoundedEventBus<FsEvent>>(),
         config.TopK,
-        config.IntervalMs / 1000)); // Convert ms to seconds for now
+        config.IntervalMs,
+        config.EnableMetricsLogs,
+        sp.GetService<ILogger<Reporter>>()));
 
 services.AddSingleton<FilesystemWatcherAdapter>(sp =>
     new FilesystemWatcherAdapter(
