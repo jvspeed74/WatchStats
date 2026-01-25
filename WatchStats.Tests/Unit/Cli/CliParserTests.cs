@@ -1,6 +1,6 @@
-﻿using WatchStats.App;
+﻿using WatchStats.Cli;
 
-namespace WatchStats.Tests.Unit.App;
+namespace WatchStats.Tests.Unit.Cli;
 
 public class CliParserTests : IDisposable
 {

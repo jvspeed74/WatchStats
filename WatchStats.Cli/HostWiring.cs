@@ -4,7 +4,7 @@ using WatchStats.Core.Events;
 using WatchStats.Core.IO;
 using WatchStats.Core.Metrics;
 
-namespace WatchStats.App;
+namespace WatchStats.Cli;
 
 internal static class HostWiring
 {

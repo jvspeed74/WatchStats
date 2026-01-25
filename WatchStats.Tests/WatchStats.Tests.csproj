@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\WatchStats.App\WatchStats.App.csproj"/>
+        <ProjectReference Include="..\WatchStats.Cli\WatchStats.Cli.csproj" />
         <ProjectReference Include="..\WatchStats.Core\WatchStats.Core.csproj"/>
     </ItemGroup>
 

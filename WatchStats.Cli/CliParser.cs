@@ -1,4 +1,4 @@
-﻿namespace WatchStats.App;
+﻿namespace WatchStats.Cli;
 
 /// <summary>
 /// Command-line parser for the WatchStats.Core application.
@@ -6,15 +6,15 @@
 public static class CliParser
 {
     /// <summary>
-    /// Attempts to parse command-line arguments into an <see cref="AppConfig"/> instance.
+    /// Attempts to parse command-line arguments into an <see cref="CliConfig"/> instance.
     /// On success returns <c>true</c> and sets <paramref name="config"/>; on failure returns <c>false</c> and sets <paramref name="error"/>.
     /// This method never throws on parse errors.
     /// </summary>
     /// <param name="args">Array of command-line arguments.</param>
-    /// <param name="config">On success receives a validated <see cref="AppConfig"/> instance; otherwise <c>null</c>.</param>
+    /// <param name="config">On success receives a validated <see cref="CliConfig"/> instance; otherwise <c>null</c>.</param>
     /// <param name="error">On failure receives an error string (or "help" when help was requested).</param>
     /// <returns>True when parsing succeeded and <paramref name="config"/> is set; otherwise false.</returns>
-    public static bool TryParse(string[] args, out AppConfig? config, out string? error)
+    public static bool TryParse(string[] args, out CliConfig? config, out string? error)
     {
         config = null;
         error = null;
@@ -143,7 +143,7 @@ public static class CliParser
 
         try
         {
-            config = new AppConfig(watchPath, workers, queueCapacity, reportIntervalSeconds, topK);
+            config = new CliConfig(watchPath, workers, queueCapacity, reportIntervalSeconds, topK);
             return true;
         }
         catch (Exception ex)

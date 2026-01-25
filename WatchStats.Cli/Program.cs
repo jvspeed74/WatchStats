@@ -1,4 +1,4 @@
-﻿using WatchStats.App;
+﻿using WatchStats.Cli;
 using WatchStats.Core;
 using WatchStats.Core.Concurrency;
 using WatchStats.Core.Events;

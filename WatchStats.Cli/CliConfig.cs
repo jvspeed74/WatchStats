@@ -1,9 +1,9 @@
-﻿namespace WatchStats.App;
+﻿namespace WatchStats.Cli;
 
 /// <summary>
 /// Validated application configuration populated from the CLI.
 /// </summary>
-public sealed class AppConfig
+public sealed class CliConfig
 {
     /// <summary>Directory path to watch (absolute path returned from constructor).</summary>
     public string WatchPath { get; }
@@ -17,7 +17,7 @@ public sealed class AppConfig
     public int TopK { get; }
 
     /// <summary>
-    /// Creates and validates an <see cref="AppConfig"/> instance. Throws <see cref="ArgumentException"/> or <see cref="ArgumentOutOfRangeException"/>
+    /// Creates and validates an <see cref="CliConfig"/> instance. Throws <see cref="ArgumentException"/> or <see cref="ArgumentOutOfRangeException"/>
     /// for invalid inputs.
     /// </summary>
     /// <param name="watchPath">Directory to watch; must exist.</param>
@@ -25,7 +25,7 @@ public sealed class AppConfig
     /// <param name="queueCapacity">Event queue capacity; must be >= 1.</param>
     /// <param name="reportIntervalSeconds">Reporting interval in seconds; must be >= 1.</param>
     /// <param name="topK">Top-K count for reporting; must be >= 1.</param>
-    public AppConfig(string watchPath, int workers, int queueCapacity, int reportIntervalSeconds, int topK)
+    public CliConfig(string watchPath, int workers, int queueCapacity, int reportIntervalSeconds, int topK)
     {
         if (string.IsNullOrWhiteSpace(watchPath))
             throw new ArgumentException("watchPath is required", nameof(watchPath));

@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatchStats.Tests", "WatchSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatchStats.Seed", "WatchStats.Seed\WatchStats.Seed.csproj", "{0481DF95-85EA-4D5D-BD92-6FAB10F85CDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatchStats.App", "WatchStats.App\WatchStats.App.csproj", "{6CBD1BB2-31D1-4623-A8FB-B5BF97BD278F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatchStats.Cli", "WatchStats.Cli\WatchStats.Cli.csproj", "{6CBD1BB2-31D1-4623-A8FB-B5BF97BD278F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

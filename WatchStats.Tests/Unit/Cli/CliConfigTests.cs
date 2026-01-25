@@ -1,12 +1,12 @@
-﻿using WatchStats.App;
+﻿using WatchStats.Cli;
 
-namespace WatchStats.Tests.Unit.App;
+namespace WatchStats.Tests.Unit.Cli;
 
-public class AppConfigTests : IDisposable
+public class CliConfigTests : IDisposable
 {
     private readonly string _tmpDir;
 
-    public AppConfigTests()
+    public CliConfigTests()
     {
         _tmpDir = Path.Combine(Path.GetTempPath(), "watchstats_config_test_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tmpDir);
@@ -26,7 +26,7 @@ public class AppConfigTests : IDisposable
     [Fact]
     public void Constructor_Valid_SetsValues()
     {
-        var cfg = new AppConfig(_tmpDir, 2, 1000, 3, 5);
+        var cfg = new CliConfig(_tmpDir, 2, 1000, 3, 5);
         Assert.Equal(Path.GetFullPath(_tmpDir), cfg.WatchPath);
         Assert.Equal(2, cfg.Workers);
         Assert.Equal(1000, cfg.QueueCapacity);
@@ -37,7 +37,7 @@ public class AppConfigTests : IDisposable
     [Fact]
     public void Constructor_InvalidPath_Throws()
     {
-        Assert.Throws<ArgumentException>(() => new AppConfig("doesnotexist", 1, 1, 1, 1));
+        Assert.Throws<ArgumentException>(() => new CliConfig("doesnotexist", 1, 1, 1, 1));
     }
 
     [Theory]
@@ -48,6 +48,6 @@ public class AppConfigTests : IDisposable
     public void Constructor_InvalidNumbers_Throws(int workers, int queueCap, int reportSecs, int topk)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new AppConfig(_tmpDir, workers, queueCap, reportSecs, topk));
+            new CliConfig(_tmpDir, workers, queueCap, reportSecs, topk));
     }
 }
