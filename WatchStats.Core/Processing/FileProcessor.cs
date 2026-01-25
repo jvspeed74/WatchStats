@@ -21,7 +21,8 @@ namespace WatchStats.Core.Processing
         /// <param name="state">File-specific state object (offset/carry buffer) that will be read and updated.</param>
         /// <param name="stats">Worker-local statistics buffer that will be updated from parsed lines.</param>
         /// <param name="chunkSize">Optional read chunk size passed to the file tailer. Defaults to 64KiB.</param>
-        void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024);
+        /// <param name="workerId">Optional worker identifier for logging. Defaults to -1 (not logged).</param>
+        void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024, int workerId = -1);
     }
 
     // FileProcessor: tail -> scan -> parse -> update WorkerStatsBuffer
@@ -65,8 +66,9 @@ namespace WatchStats.Core.Processing
         /// <param name="state">File state object that contains offset and carry buffer. Must not be <c>null</c>.</param>
         /// <param name="stats">Worker-local statistics buffer to update. Must not be <c>null</c>.</param>
         /// <param name="chunkSize">Read buffer size in bytes for tailer. Defaults to 64KiB.</param>
+        /// <param name="workerId">Worker identifier for logging. Defaults to -1 (not logged).</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="path"/>, <paramref name="state"/>, or <paramref name="stats"/> is <c>null</c>.</exception>
-        public void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024)
+        public void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024, int workerId = -1)
         {
             // Precondition: caller must hold state.Gate. We won't double-check locking here, but document it.
             // Use local offset to avoid advancing state.Offset until processing completes.
@@ -112,11 +114,18 @@ namespace WatchStats.Core.Processing
                 var linesProcessedInBatch = stats.LinesProcessed - startLinesProcessed;
                 var malformedInBatch = stats.MalformedLines - startMalformed;
                 
-                // Note: workerId is not available here - it's tracked by ProcessingCoordinator
-                // We log without workerId, or we could add it as a parameter if needed
-                _logger?.LogDebug(Events.WorkerBatchProcessed,
-                    "Worker batch processed. LinesProcessed={LinesProcessed} MalformedLines={MalformedLines} DurationMs={DurationMs}",
-                    linesProcessedInBatch, malformedInBatch, (int)duration);
+                if (workerId >= 0)
+                {
+                    _logger?.LogDebug(Events.WorkerBatchProcessed,
+                        "Worker batch processed. WorkerId={WorkerId} LinesProcessed={LinesProcessed} MalformedLines={MalformedLines} DurationMs={DurationMs}",
+                        workerId, linesProcessedInBatch, malformedInBatch, (int)duration);
+                }
+                else
+                {
+                    _logger?.LogDebug(Events.WorkerBatchProcessed,
+                        "Worker batch processed. LinesProcessed={LinesProcessed} MalformedLines={MalformedLines} DurationMs={DurationMs}",
+                        linesProcessedInBatch, malformedInBatch, (int)duration);
+                }
             }
 
             // handle status counters

@@ -21,6 +21,8 @@ namespace WatchStats.Core.Concurrency
 
         private long _published;
         private long _dropped;
+        private DateTime _lastDropLogTime = DateTime.MinValue;
+        private readonly TimeSpan _dropLogInterval = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Creates a new bounded event bus with the provided capacity.
@@ -52,9 +54,17 @@ namespace WatchStats.Core.Concurrency
                 if (_queue.Count >= _capacity)
                 {
                     var newDropped = Interlocked.Increment(ref _dropped);
-                    _logger?.LogWarning(Events.BusDropNewest,
-                        "Event bus full, dropping newest event. Capacity={Capacity} Dropped={Dropped}",
-                        _capacity, newDropped);
+                    
+                    // Rate limit logging to once per 10 seconds
+                    var now = DateTime.UtcNow;
+                    if (now - _lastDropLogTime >= _dropLogInterval)
+                    {
+                        _lastDropLogTime = now;
+                        _logger?.LogWarning(Events.BusDropNewest,
+                            "Event bus full, dropping newest event. Capacity={Capacity} Dropped={Dropped}",
+                            _capacity, newDropped);
+                    }
+                    
                     return false; // drop newest
                 }
 

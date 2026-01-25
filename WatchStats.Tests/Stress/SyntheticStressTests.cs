@@ -76,7 +76,7 @@ public class SyntheticStressTests
             _counts = counts;
         }
 
-        public void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024)
+        public void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024, int workerId = -1)
         {
             var curr = _inFlight.AddOrUpdate(path, 1, (_, v) => v + 1);
             try

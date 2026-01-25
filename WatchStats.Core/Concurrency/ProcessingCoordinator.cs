@@ -124,7 +124,7 @@ namespace WatchStats.Core.Concurrency
                         case FsEventKind.Created:
                         case FsEventKind.Modified:
                             if (ev.Processable)
-                                HandleCreateOrModify(ev.Path, stats);
+                                HandleCreateOrModify(ev.Path, stats, workerIndex);
                             break;
                         case FsEventKind.Deleted:
                             HandleDelete(ev.Path, stats.Active);
@@ -133,7 +133,7 @@ namespace WatchStats.Core.Concurrency
                             if (!string.IsNullOrEmpty(ev.OldPath))
                                 HandleDelete(ev.OldPath, stats.Active);
                             if (ev.Processable)
-                                HandleCreateOrModify(ev.Path, stats);
+                                HandleCreateOrModify(ev.Path, stats, workerIndex);
                             break;
                     }
 
@@ -150,7 +150,7 @@ namespace WatchStats.Core.Concurrency
             }
         }
 
-        private void HandleCreateOrModify(string path, WorkerStats stats)
+        private void HandleCreateOrModify(string path, WorkerStats stats, int workerId)
         {
             var state = _registry.GetOrCreate(path);
             var buffer = stats.Active;
@@ -186,7 +186,7 @@ namespace WatchStats.Core.Concurrency
                     }
 
                     // process once
-                    _processor.ProcessOnce(path, state, buffer);
+                    _processor.ProcessOnce(path, state, buffer, 64 * 1024, workerId);
 
                     // allow timely swap acknowledgements after processing
                     stats.AcknowledgeSwapIfRequested();

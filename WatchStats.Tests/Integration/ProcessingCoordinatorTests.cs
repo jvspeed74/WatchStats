@@ -18,7 +18,7 @@ internal class FakeProcessor : IFileProcessor
         _delayMs = delayMs;
     }
 
-    public void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024)
+    public void ProcessOnce(string path, FileState state, WorkerStatsBuffer stats, int chunkSize = 64 * 1024, int workerId = -1)
     {
         // Check not re-entrant for same path
         if (!_inProgress.TryAdd(path, 1))
