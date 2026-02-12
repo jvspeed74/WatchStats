@@ -1,0 +1,12 @@
+﻿services:
+  watchstats.cli:
+    image: watchstats.cli
+    build:
+      context: .
+      dockerfile: WatchStats.Cli/Dockerfile
+
+  watchstats.seed:
+    image: watchstats.seed
+    build:
+      context: .
+      dockerfile: WatchStats.Seed/Dockerfile
