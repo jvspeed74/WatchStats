@@ -1,7 +1,6 @@
 ﻿services:
   logwatcher.app:
     image: logwatcher.app
-    container_name: watcher
     build:
       context: .
       dockerfile: LogWatcher.App/Dockerfile
@@ -9,12 +8,11 @@
       - ./../data  # assuming /app is the working directory in the container
     volumes:
       - ./temp:/data  # Mount host ./temp to container /data
-      
+
   logwatcher.seeder:
     depends_on:
       - logwatcher.app
     image: logwatcher.seeder
-    container_name: seeder
     build:
       context: .
       dockerfile: LogWatcher.Seeder/Dockerfile
