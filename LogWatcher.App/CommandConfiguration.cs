@@ -145,28 +145,16 @@ public static class CommandConfiguration
             var reportInterval = parseResult.GetValue(reportIntervalOpt);
             var topK = parseResult.GetValue(topKOpt);
             
-            // Create CliConfig (validation happens in constructor)
-            CliConfig config;
-            try
-            {
-                config = new CliConfig(watchPath, workers, queueCapacity, reportInterval, topK);
-            }
-            catch (Exception ex)
-            {
-                // Configuration failed - no resources allocated yet, safe to exit
-                Console.Error.WriteLine($"Configuration error: {ex.Message}");
-                Environment.Exit(2);
-                return;
-            }
+            // All validation has already been performed by System.CommandLine validators
+            // Convert relative paths to absolute paths (matching the original CliConfig behavior)
+            var absoluteWatchPath = Path.GetFullPath(watchPath);
             
             // Delegate to ApplicationHost
             // ApplicationHost.Run() has a try/finally block that ensures ALL cleanup happens:
             //   - Stops all components (watcher, coordinator, reporter)
             //   - Disposes resources
             //   - Returns exit code only AFTER finally block completes
-            // This is the FIX for the original bug where Environment.Exit was called BEFORE
-            // the try/finally was entered, preventing cleanup from ever running.
-            var exitCode = ApplicationHost.Run(config);
+            var exitCode = ApplicationHost.Run(absoluteWatchPath, workers, queueCapacity, reportInterval, topK);
             
             // At this point, ALL cleanup is complete (ApplicationHost.Run's finally block has executed)
             // It's now safe to exit with the appropriate code
