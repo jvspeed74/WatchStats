@@ -1,4 +1,4 @@
-﻿namespace LogWatcher.Core.Events;
+﻿namespace LogWatcher.Core.Ingestion;
 
 /// <summary>
 /// Filesystem event kinds used by the watcher and processing pipeline.

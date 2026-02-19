@@ -1,4 +1,4 @@
-﻿namespace LogWatcher.Core.Concurrency
+﻿namespace LogWatcher.Core.Events
 {
     /// <summary>
     /// Thread-safe bounded FIFO event bus with drop-newest semantics when full.

@@ -1,6 +1,4 @@
-﻿using LogWatcher.Core.Metrics;
-
-namespace LogWatcher.Core.Events
+﻿namespace LogWatcher.Core.Ingestion
 {
     /// <summary>
     /// Represents a filesystem event observed by the watcher.

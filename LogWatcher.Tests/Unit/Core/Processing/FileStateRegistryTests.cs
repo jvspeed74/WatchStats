@@ -1,4 +1,5 @@
-﻿using LogWatcher.Core.Processing;
+﻿using LogWatcher.Core.FileManagement;
+using LogWatcher.Core.Processing;
 
 namespace LogWatcher.Tests.Unit.Core.Processing;
 

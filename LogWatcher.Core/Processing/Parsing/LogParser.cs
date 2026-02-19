@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace LogWatcher.Core.Processing
+namespace LogWatcher.Core.Processing.Parsing
 {
     /// <summary>
     /// A stack-only view containing fields parsed from a single log line.

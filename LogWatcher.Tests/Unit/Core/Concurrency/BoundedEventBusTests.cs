@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
-using LogWatcher.Core.Concurrency;
+
+using LogWatcher.Core.Events;
 
 namespace LogWatcher.Tests.Unit.Core.Concurrency;
 

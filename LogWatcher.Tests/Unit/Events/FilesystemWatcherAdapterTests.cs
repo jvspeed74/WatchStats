@@ -1,6 +1,5 @@
-﻿using LogWatcher.Core.Concurrency;
-using LogWatcher.Core.Events;
-using LogWatcher.Core.IO;
+﻿using LogWatcher.Core.Events;
+using LogWatcher.Core.Ingestion;
 
 namespace LogWatcher.Tests.Unit.Events;
 

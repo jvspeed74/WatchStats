@@ -1,4 +1,4 @@
-﻿namespace LogWatcher.Core.Processing
+﻿namespace LogWatcher.Core.FileManagement
 {
     /// <summary>
     /// Per-path mutable state used by the tailer and processor.

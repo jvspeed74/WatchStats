@@ -1,6 +1,7 @@
-﻿using LogWatcher.Core.Processing;
+﻿using LogWatcher.Core.Processing.Parsing;
+using LogWatcher.Core.Statistics;
 
-namespace LogWatcher.Core.Metrics
+namespace LogWatcher.Core.Reporting
 {
     /// <summary>
     /// Aggregated metrics and derived outputs for a reporting interval.

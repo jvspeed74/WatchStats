@@ -1,4 +1,6 @@
-﻿namespace LogWatcher.Core.Processing
+﻿using LogWatcher.Core.FileManagement;
+
+namespace LogWatcher.Core.Processing.Scanning
 {
     // PartialLineBuffer holds carryover bytes for a single file between chunk scans.
     // Fields are public to match the doc's simple data-shape.

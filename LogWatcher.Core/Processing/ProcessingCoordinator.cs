@@ -1,8 +1,10 @@
-﻿using LogWatcher.Core.Events;
-using LogWatcher.Core.Metrics;
-using LogWatcher.Core.Processing;
+﻿using LogWatcher.Core.Coordination;
+using LogWatcher.Core.Events;
+using LogWatcher.Core.FileManagement;
+using LogWatcher.Core.Ingestion;
+using LogWatcher.Core.Statistics;
 
-namespace LogWatcher.Core.Concurrency
+namespace LogWatcher.Core.Processing
 {
     /// <summary>
     /// Coordinates worker threads that dequeue filesystem events and dispatch processing work.

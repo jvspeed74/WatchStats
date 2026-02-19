@@ -1,5 +1,8 @@
 ﻿using System.Text;
+
+using LogWatcher.Core.FileManagement;
 using LogWatcher.Core.Processing;
+using LogWatcher.Core.Processing.Scanning;
 
 namespace LogWatcher.Tests.Unit.Core.Processing;
 

@@ -1,4 +1,4 @@
-﻿namespace LogWatcher.Core.IO;
+﻿namespace LogWatcher.Core.Processing.Tailing;
 
 /// <summary>
 /// Describes the outcome of an attempt to read newly appended bytes from a file.

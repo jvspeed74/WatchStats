@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace LogWatcher.Core.Processing;
+namespace LogWatcher.Core.FileManagement;
 
 /// <summary>
 /// Registry of <see cref="FileState"/> objects keyed by file path. Supports concurrent access.

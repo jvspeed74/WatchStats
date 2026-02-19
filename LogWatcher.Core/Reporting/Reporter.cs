@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics;
 
-using LogWatcher.Core.Concurrency;
+using LogWatcher.Core.Coordination;
 using LogWatcher.Core.Events;
+using LogWatcher.Core.Ingestion;
 
-namespace LogWatcher.Core.Metrics
+namespace LogWatcher.Core.Reporting
 {
     /// <summary>
     /// Periodically requests worker stats swaps, merges per-worker buffers into a <see cref="GlobalSnapshot"/>, and prints a report.

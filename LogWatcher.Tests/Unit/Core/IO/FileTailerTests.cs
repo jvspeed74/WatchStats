@@ -1,5 +1,6 @@
 ﻿using System.Text;
-using LogWatcher.Core.IO;
+
+using LogWatcher.Core.Processing.Tailing;
 
 namespace LogWatcher.Tests.Unit.Core.IO;
 

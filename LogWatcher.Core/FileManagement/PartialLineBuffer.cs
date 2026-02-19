@@ -1,4 +1,4 @@
-﻿namespace LogWatcher.Core.Processing;
+﻿namespace LogWatcher.Core.FileManagement;
 
 /// <summary>
 /// Holds carry-over bytes for a single file between chunk scans.

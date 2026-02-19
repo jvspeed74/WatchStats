@@ -1,7 +1,7 @@
-﻿using LogWatcher.Core.Events;
-using LogWatcher.Core.Processing;
+﻿using LogWatcher.Core.Ingestion;
+using LogWatcher.Core.Processing.Parsing;
 
-namespace LogWatcher.Core.Metrics
+namespace LogWatcher.Core.Statistics
 {
     /// <summary>
     /// Per-worker stats buffer for a single reporting interval. Contains counters, message counts and a latency histogram.

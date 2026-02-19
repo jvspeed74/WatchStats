@@ -1,9 +1,6 @@
-﻿using LogWatcher.Core.Concurrency;
-using LogWatcher.Core.Events;
+﻿using LogWatcher.Core.Events;
 
-using LogWatcher.Core.Metrics;
-
-namespace LogWatcher.Core.IO
+namespace LogWatcher.Core.Ingestion
 {
     /// <summary>
     /// Adapter that wraps <see cref="FileSystemWatcher"/> and publishes <see cref="FsEvent"/> events to a <see cref="BoundedEventBus{T}"/>.

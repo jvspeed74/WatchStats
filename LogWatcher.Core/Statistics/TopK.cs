@@ -1,4 +1,4 @@
-﻿namespace LogWatcher.Core.Metrics
+﻿namespace LogWatcher.Core.Statistics
 {
     /// <summary>
     /// Utility to compute top-K message keys by count.

@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 
-namespace LogWatcher.Core.IO
+namespace LogWatcher.Core.Processing.Tailing
 {
     /// <summary>
     /// Utility to read bytes that have been appended to a file since a given offset.

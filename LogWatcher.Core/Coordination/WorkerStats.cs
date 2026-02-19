@@ -1,4 +1,6 @@
-﻿namespace LogWatcher.Core.Metrics
+﻿using LogWatcher.Core.Statistics;
+
+namespace LogWatcher.Core.Coordination
 {
     /// <summary>
     /// Per-worker double-buffered statistics container.
