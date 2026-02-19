@@ -1,6 +1,6 @@
 ﻿using LogWatcher.Core.Statistics;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.Statistics;
 
 public class LatencyHistogramTests
 {

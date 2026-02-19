@@ -3,7 +3,7 @@
 using LogWatcher.Core.FileManagement;
 using LogWatcher.Core.Processing.Scanning;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.Processing.Scanning;
 
 public class Utf8LineScannerTests
 {

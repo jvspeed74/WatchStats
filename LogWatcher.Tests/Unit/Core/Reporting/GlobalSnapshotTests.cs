@@ -1,7 +1,7 @@
 ﻿using LogWatcher.Core.Reporting;
 using LogWatcher.Core.Statistics;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.Reporting;
 
 public class GlobalSnapshotTests
 {

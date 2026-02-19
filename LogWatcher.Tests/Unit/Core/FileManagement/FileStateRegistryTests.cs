@@ -1,6 +1,6 @@
 ﻿using LogWatcher.Core.FileManagement;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.FileManagement;
 
 public class FileStateRegistryTests
 {

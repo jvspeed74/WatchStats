@@ -3,7 +3,7 @@ using LogWatcher.Core.Processing;
 using LogWatcher.Core.Processing.Tailing;
 using LogWatcher.Core.Statistics;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.Processing;
 
 public class FileProcessorTests : IDisposable
 {

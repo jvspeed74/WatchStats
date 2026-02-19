@@ -2,7 +2,7 @@
 
 using LogWatcher.Core.Processing.Parsing;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.Processing.Parsing;
 
 public class LogParserTests
 {

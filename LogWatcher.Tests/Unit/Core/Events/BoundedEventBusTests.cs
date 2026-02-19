@@ -2,7 +2,7 @@
 
 using LogWatcher.Core.Events;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.Events;
 
 public class BoundedEventBusTests
 {

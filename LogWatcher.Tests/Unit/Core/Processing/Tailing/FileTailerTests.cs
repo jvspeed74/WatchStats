@@ -2,7 +2,7 @@
 
 using LogWatcher.Core.Processing.Tailing;
 
-namespace LogWatcher.Tests.Unit.Core;
+namespace LogWatcher.Tests.Unit.Core.Processing.Tailing;
 
 public class FileTailerTests : IDisposable
 {
