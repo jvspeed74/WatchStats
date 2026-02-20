@@ -22,7 +22,7 @@ namespace LogWatcher.Core.Ingestion
         public FilesystemWatcherAdapter(string path, BoundedEventBus<FsEvent> bus,
             Func<string, bool>? isProcessable = null)
         {
-            if (path == null) throw new ArgumentNullException(nameof(path));
+            ArgumentNullException.ThrowIfNull(path);
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
             _isProcessable = isProcessable ?? DefaultIsProcessable;
 
@@ -55,7 +55,7 @@ namespace LogWatcher.Core.Ingestion
         /// </summary>
         public void Start()
         {
-            if (_watcher == null) throw new ObjectDisposedException(nameof(FilesystemWatcherAdapter));
+            ObjectDisposedException.ThrowIf(_watcher == null, this);
             _watcher.EnableRaisingEvents = true;
         }
 

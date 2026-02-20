@@ -22,7 +22,7 @@ namespace LogWatcher.Core.Processing.Scanning
         public static void Scan(ReadOnlySpan<byte> chunk, ref PartialLineBuffer carry,
             Action<ReadOnlySpan<byte>> onLine)
         {
-            if (onLine == null) throw new ArgumentNullException(nameof(onLine));
+            ArgumentNullException.ThrowIfNull(onLine);
 
             // TODO: Consider adding a maximum line length check to prevent unbounded memory growth from malformed input
             // Handle the carry path first

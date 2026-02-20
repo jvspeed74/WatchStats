@@ -35,16 +35,11 @@ namespace LogWatcher.Core.Processing
     /// </summary>
     public sealed class FileProcessor : IFileProcessor
     {
-        private readonly FileTailer _tailer;
-
         /// <summary>
-        /// Creates a new <see cref="FileProcessor"/>. An optional <see cref="FileTailer"/> may be supplied
-        /// (useful for tests); when <c>null</c> a default <see cref="FileTailer"/> is created.
+        /// Creates a new <see cref="FileProcessor"/>.
         /// </summary>
-        /// <param name="tailer">Optional tailer used to read appended bytes from files.</param>
-        public FileProcessor(FileTailer? tailer = null)
+        public FileProcessor()
         {
-            _tailer = tailer ?? new FileTailer();
         }
 
         /// <summary>
@@ -64,7 +59,7 @@ namespace LogWatcher.Core.Processing
             // Use local offset to avoid advancing state.Offset until processing completes.
             long localOffset = state.Offset;
 
-            TailReadStatus status = _tailer.ReadAppended(path, ref localOffset, chunk =>
+            TailReadStatus status = FileTailer.ReadAppended(path, ref localOffset, chunk =>
             {
                 // For each chunk, run the UTF8 scanner using state's carry buffer
                 Utf8LineScanner.Scan(chunk, ref state.Carry, line =>

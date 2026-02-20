@@ -66,8 +66,7 @@ namespace LogWatcher.Core.FileManagement
         public void ClearCarry()
         {
             // reset buffer and length
-            Carry.Buffer = null;
-            Carry.Length = 0;
+            Carry.Release();
         }
     }
 }
