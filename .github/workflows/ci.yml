@@ -39,7 +39,14 @@ jobs:
       - name: Restore
         run: dotnet restore
         
+      - name: Format Check
+        run: dotnet format --verify-no-changes --no-restore --verbosity normal
+        
+      - name: Build
+        run: dotnet build --no-restore --configuration Debug --verbosity detailed
+        
+        # todo : add code coverage
       - name: Test
-        run: dotnet test --no-restore
+        run: dotnet test --no-restore --configuration Debug --verbosity detailed
         
 
