@@ -43,7 +43,6 @@ jobs:
 
   test:
     runs-on: ${{ matrix.os }}
-    needs: build
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
@@ -80,6 +79,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Prepare temp directory
+        run: mkdir -p ./temp && chmod 777 ./temp
 
       - name: Build and run services with docker-compose
         run: |
