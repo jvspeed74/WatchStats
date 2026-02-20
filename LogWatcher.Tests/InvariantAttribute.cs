@@ -14,7 +14,7 @@
 /// </code>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
-public class InvariantAttribute : Attribute
+public sealed class InvariantAttribute : Attribute
 {
     /// <summary>
     /// Gets the invariant ID being protected by this test.
