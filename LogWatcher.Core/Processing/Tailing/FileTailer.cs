@@ -34,7 +34,6 @@ namespace LogWatcher.Core.Processing.Tailing
         /// <param name="chunkSize">Maximum chunk size to use when reading; when &lt;= 0 the default of 64 KiB is used.</param>
         /// <returns>A <see cref="TailReadStatus"/> describing the outcome of the read operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="path"/> or <paramref name="onChunk"/> is <c>null</c>.</exception>
-        /// <inheritdoc/>
         public TailReadStatus ReadAppended(string path, ref long offset, Action<ReadOnlySpan<byte>> onChunk,
             out int totalBytesRead, int chunkSize = DefaultChunkSize)
         {
