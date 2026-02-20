@@ -9,9 +9,8 @@ namespace LogWatcher.Tests.Integration;
 
 public class ReporterTests
 {
+    // TODO: map to invariant
     [Fact]
-    [Invariant("RPT-002")]
-    [Invariant("CD-001")]
     public void BuildSnapshotAndFrame_WithPopulatedWorkerBuffers_MergesAllMetrics()
     {
         // Arrange

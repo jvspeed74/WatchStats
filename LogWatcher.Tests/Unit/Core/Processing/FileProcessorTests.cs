@@ -53,8 +53,8 @@ public class FileProcessorTests : IDisposable
         }
     }
 
+    // TODO: map to invariant
     [Fact]
-    [Invariant("TAIL-001")]
     public void ProcessOnce_WithAppendedContent_ReadsOnlyNewBytes()
     {
         var p = MakePath("p2.log");

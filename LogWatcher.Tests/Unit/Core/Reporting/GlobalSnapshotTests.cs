@@ -5,8 +5,8 @@ namespace LogWatcher.Tests.Unit.Core.Reporting;
 
 public class GlobalSnapshotTests
 {
+    // TODO: map to invariant
     [Fact]
-    [Invariant("RPT-002")]
     public void MergeFrom_WithWorkerBuffer_SumsAllMetrics()
     {
         var snap = new GlobalSnapshot(3);
@@ -28,8 +28,8 @@ public class GlobalSnapshotTests
         Assert.Equal(3, snap.Histogram.Count);
     }
 
+    // TODO: map to invariant
     [Fact]
-    [Invariant("STAT-003")]
     public void FinalizeSnapshot_WithMessagesAndLatencies_ComputesTopKAndPercentiles()
     {
         var snap = new GlobalSnapshot(2);
@@ -51,5 +51,28 @@ public class GlobalSnapshotTests
         Assert.Equal(20, snap.P50);
         Assert.Equal(40, snap.P95);
         Assert.Equal(40, snap.P99);
+    }
+
+    [Fact]
+    [Invariant("RPT-002")]
+    public void ResetForNextMerge_AfterPopulatingSnapshot_DiscardsPriorIntervalData()
+    {
+        var snap = new GlobalSnapshot(3);
+        var priorBuf = new WorkerStatsBuffer();
+        priorBuf.LinesProcessed = 42;
+        priorBuf.MessageCounts["prior_key"] = 7;
+        priorBuf.Histogram.Add(100);
+        snap.MergeFrom(priorBuf);
+
+        // Sanity check: prior interval data is present
+        Assert.Equal(42, snap.LinesProcessed);
+
+        // Reset for the next interval
+        snap.ResetForNextMerge(3);
+
+        // After reset: stale data from the prior interval must not be present
+        Assert.Equal(0, snap.LinesProcessed);
+        Assert.Empty(snap.MessageCounts);
+        Assert.Equal(0, snap.Histogram.Count);
     }
 }

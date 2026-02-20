@@ -30,8 +30,8 @@ public class FileTailerTests : IDisposable
         return Path.Combine(_dir, name);
     }
 
+    // TODO: map to invariant
     [Fact]
-    [Invariant("TAIL-001")]
     public void ReadAppended_WithAppendedContent_ReadsOnlyNewBytes()
     {
         var p = MakePath("log1.txt");
@@ -59,7 +59,6 @@ public class FileTailerTests : IDisposable
     }
 
     [Fact]
-    [Invariant("TAIL-001")]
     [Invariant("TAIL-002")]
     public void ReadAppended_WhenFileTruncated_ResetsOffsetAndReadsFromStart()
     {
@@ -96,5 +95,19 @@ public class FileTailerTests : IDisposable
         var status = tailer.ReadAppended(p, ref offset, _ => { }, out var tot2);
         Assert.True(status == TailReadStatus.FileNotFound || status == TailReadStatus.NoData ||
                     status == TailReadStatus.TruncatedReset);
+    }
+
+    [Fact]
+    [Invariant("TAIL-001")]
+    public void ReadAppended_WhenFileNotFound_OffsetIsNotAdvanced()
+    {
+        var p = MakePath("nonexistent.txt");
+        IFileTailer tailer = new FileTailer();
+        long offset = 42;
+
+        var status = tailer.ReadAppended(p, ref offset, _ => { }, out _);
+
+        Assert.Equal(TailReadStatus.FileNotFound, status);
+        Assert.Equal(42, offset);
     }
 }
