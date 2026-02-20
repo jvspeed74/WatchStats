@@ -14,7 +14,7 @@ namespace LogWatcher.Core.Coordination
         private WorkerStatsBuffer _active;
         private WorkerStatsBuffer _inactive;
 
-        private int _swapRequested;
+        private int _swapRequested;  // todo investigate if this can be a bool or bit field;
         private readonly ManualResetEventSlim _swapAck;
 
         /// <summary>
