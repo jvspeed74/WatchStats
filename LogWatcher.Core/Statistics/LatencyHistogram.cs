@@ -1,4 +1,4 @@
-﻿namespace LogWatcher.Core.Statistics
+namespace LogWatcher.Core.Statistics
 {
     /// <summary>
     /// Bounded, mergeable histogram for latencies in milliseconds.

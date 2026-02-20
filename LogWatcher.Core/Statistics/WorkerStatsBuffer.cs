@@ -1,4 +1,4 @@
-﻿using LogWatcher.Core.Ingestion;
+using LogWatcher.Core.Ingestion;
 using LogWatcher.Core.Processing.Parsing;
 
 namespace LogWatcher.Core.Statistics

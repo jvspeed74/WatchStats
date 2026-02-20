@@ -1,4 +1,4 @@
-﻿using LogWatcher.Core.FileManagement;
+using LogWatcher.Core.FileManagement;
 using LogWatcher.Core.Processing;
 using LogWatcher.Core.Processing.Tailing;
 using LogWatcher.Core.Statistics;

@@ -47,7 +47,7 @@ public static class ApplicationHost
             {
                 workerStats[i] = new WorkerStats();
             }
-            coordinator = new ProcessingCoordinator(bus, registry, processor, workerStats, 
+            coordinator = new ProcessingCoordinator(bus, registry, processor, workerStats,
                 workerCount: workers);
             reporter = new Reporter(workerStats, bus, topK, reportIntervalSeconds);
             watcher = new FilesystemWatcherAdapter(watchPath, bus);
@@ -57,7 +57,7 @@ public static class ApplicationHost
                 e.Cancel = true;
                 TriggerShutdown(bus, watcher, coordinator, reporter);
             };
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => 
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
                 TriggerShutdown(bus, watcher, coordinator, reporter);
             // Start components in order
             coordinator.Start();

@@ -1,4 +1,4 @@
-﻿using LogWatcher.Core.Backpressure;
+using LogWatcher.Core.Backpressure;
 using LogWatcher.Core.Coordination;
 using LogWatcher.Core.FileManagement;
 using LogWatcher.Core.Ingestion;

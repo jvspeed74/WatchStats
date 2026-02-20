@@ -1,4 +1,4 @@
-﻿using LogWatcher.Core.Processing.Parsing;
+using LogWatcher.Core.Processing.Parsing;
 using LogWatcher.Core.Statistics;
 
 namespace LogWatcher.Core.Reporting
