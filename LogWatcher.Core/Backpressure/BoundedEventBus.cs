@@ -21,7 +21,7 @@ namespace LogWatcher.Core.Backpressure
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="capacity"/> is not positive.</exception>
         public BoundedEventBus(int capacity)
         {
-            if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity));
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
             _capacity = capacity;
         }
 
