@@ -30,8 +30,9 @@ public class FileTailerTests : IDisposable
         return Path.Combine(_dir, name);
     }
 
+    // TODO: map to invariant
     [Fact]
-    public void ReadAppended_ReadsOnlyNewBytes()
+    public void ReadAppended_WithAppendedContent_ReadsOnlyNewBytes()
     {
         var p = MakePath("log1.txt");
         File.WriteAllText(p, "hello");
@@ -58,7 +59,8 @@ public class FileTailerTests : IDisposable
     }
 
     [Fact]
-    public void ReadAppended_TruncationResetsOffset()
+    [Invariant("TAIL-002")]
+    public void ReadAppended_WhenFileTruncated_ResetsOffsetAndReadsFromStart()
     {
         var p = MakePath("log2.txt");
         File.WriteAllText(p, "12345678");
@@ -78,7 +80,8 @@ public class FileTailerTests : IDisposable
     }
 
     [Fact]
-    public void ReadAppended_FileDeleted_ReturnsFileNotFoundOrNoData()
+    [Invariant("TAIL-004")]
+    public void ReadAppended_WhenFileDeleted_ReturnsFileNotFound()
     {
         var p = MakePath("log3.txt");
         File.WriteAllText(p, "x");
@@ -92,5 +95,19 @@ public class FileTailerTests : IDisposable
         var status = tailer.ReadAppended(p, ref offset, _ => { }, out var tot2);
         Assert.True(status == TailReadStatus.FileNotFound || status == TailReadStatus.NoData ||
                     status == TailReadStatus.TruncatedReset);
+    }
+
+    [Fact]
+    [Invariant("TAIL-001")]
+    public void ReadAppended_WhenFileNotFound_OffsetIsNotAdvanced()
+    {
+        var p = MakePath("nonexistent.txt");
+        IFileTailer tailer = new FileTailer();
+        long offset = 42;
+
+        var status = tailer.ReadAppended(p, ref offset, _ => { }, out _);
+
+        Assert.Equal(TailReadStatus.FileNotFound, status);
+        Assert.Equal(42, offset);
     }
 }
