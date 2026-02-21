@@ -16,7 +16,7 @@ public static class UserCache
 **Why it's bad:**
 
 - Tests interfere with each other (state pollution)
-- Race conditions in multi-threaded code
+- Race conditions in multithreaded code
 - Hidden dependencies (not obvious from method signature)
 - Impossible to mock for testing
 
@@ -335,6 +335,6 @@ Ingestion → Events → FileManagement ↘
 
 6. **Make it explicit.** Hidden state and hidden dependencies are the enemy.
 
-7. **One job per domain.** If you can't describe it in one sentence, it's too broad.
+7. **One job per domain.** If you can't describe it in 1-2 sentences, it's too broad.
 
 ---
