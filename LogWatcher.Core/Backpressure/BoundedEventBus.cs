@@ -61,11 +61,9 @@ namespace LogWatcher.Core.Backpressure
             }
 
             // TryWrite returns false for two reasons: bus full, OR writer completed (Stop raced).
-            // Re-read _stopped to distinguish — if Stop() completed between the first check and
-            // TryWrite, don't count this as a capacity drop (it was a post-stop publish).
-            if (_stopped)
-                return false;
-
+            // We already checked _stopped above and it was false, so we treat this failure as a
+            // capacity drop. If Stop() raced between the initial check and TryWrite, we may count
+            // at most one spurious drop at shutdown — acceptable for a metrics counter.
             Interlocked.Increment(ref _dropped);
             return false;
         }
