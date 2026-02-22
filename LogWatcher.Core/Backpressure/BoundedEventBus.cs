@@ -1,3 +1,5 @@
+using System.Threading.Channels;
+
 namespace LogWatcher.Core.Backpressure
 {
     /// <summary>
@@ -6,10 +8,13 @@ namespace LogWatcher.Core.Backpressure
     /// <typeparam name="T">Type of events carried by the bus.</typeparam>
     public sealed class BoundedEventBus<T>
     {
-        private readonly int _capacity;
-        private readonly Queue<T> _queue = new Queue<T>();
-        private readonly object _lock = new object();
-        private bool _stopped;
+        // Channel provides lock-free producer/consumer coordination; DropWrite enforces
+        // drop-newest semantics (BP-002) without any explicit locking on the hot path.
+        private readonly Channel<T> _channel;
+
+        // Separate stopped flag lets Publish distinguish a capacity drop from a post-Stop
+        // return so that _dropped is not incremented for post-Stop publish calls.
+        private volatile bool _stopped;
 
         private long _published;
         private long _dropped;
@@ -22,7 +27,17 @@ namespace LogWatcher.Core.Backpressure
         public BoundedEventBus(int capacity)
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
-            _capacity = capacity;
+            _channel = Channel.CreateBounded<T>(new BoundedChannelOptions(capacity)
+            {
+                // Wait mode: TryWrite returns false when full (no blocking — we never call
+                // WriteAsync). This gives us a clean false return to count as a drop.
+                // DropWrite would return true even for dropped items, making the return
+                // value useless for distinguishing published from dropped.
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleWriter = false,
+                SingleReader = false,
+                AllowSynchronousContinuations = false,
+            });
         }
 
         /// <summary>
@@ -32,24 +47,19 @@ namespace LogWatcher.Core.Backpressure
         /// <returns>True when enqueued; false if dropped or stopped.</returns>
         public bool Publish(T item)
         {
-            lock (_lock)
+            // Return without counting as dropped — Stop is not a capacity event.
+            if (_stopped)
+                return false;
+
+            if (_channel.Writer.TryWrite(item))
             {
-                if (_stopped)
-                {
-                    return false;
-                }
-
-                if (_queue.Count >= _capacity)
-                {
-                    Interlocked.Increment(ref _dropped);
-                    return false; // drop newest
-                }
-
-                _queue.Enqueue(item);
                 Interlocked.Increment(ref _published);
-                Monitor.Pulse(_lock);
                 return true;
             }
+
+            // TryWrite returned false while not stopped: bus is full, drop the incoming item.
+            Interlocked.Increment(ref _dropped);
+            return false;
         }
 
         /// <summary>
@@ -60,36 +70,43 @@ namespace LogWatcher.Core.Backpressure
         /// <returns>True when an item was dequeued; false on timeout or when the bus is stopped and empty.</returns>
         public bool TryDequeue(out T item, int timeoutMs)
         {
-            // FIXME: Using DateTime.UtcNow for deadline calculation can be inaccurate under system clock adjustments
-            // Consider using Stopwatch or Environment.TickCount64 for more reliable timeout handling
-            var deadline = DateTime.UtcNow + TimeSpan.FromMilliseconds(Math.Max(0, timeoutMs));
+            // Fast path: item already available — no allocation, no blocking.
+            if (_channel.Reader.TryRead(out item!))
+                return true;
 
-            lock (_lock)
+            if (timeoutMs <= 0)
             {
-                while (true)
+                item = default!;
+                return false;
+            }
+
+            // CancellationTokenSource uses a monotonic timer internally, replacing the
+            // previous DateTime.UtcNow deadline which was susceptible to NTP clock adjustments.
+            using var cts = new CancellationTokenSource(Math.Max(0, timeoutMs));
+            try
+            {
+                // WaitToReadAsync completes synchronously when data is already present
+                // (zero allocation); otherwise it blocks the calling thread until data
+                // arrives or the token is cancelled (timeout). Returns false only when
+                // the channel is both completed and empty (BP-005 drain behaviour).
+                var waitTask = _channel.Reader.WaitToReadAsync(cts.Token);
+                bool hasData = waitTask.IsCompletedSuccessfully
+                    ? waitTask.GetAwaiter().GetResult()
+                    : waitTask.AsTask().GetAwaiter().GetResult();
+
+                if (!hasData)
                 {
-                    if (_queue.Count > 0)
-                    {
-                        item = _queue.Dequeue();
-                        return true;
-                    }
-
-                    if (_stopped)
-                    {
-                        item = default!;
-                        return false;
-                    }
-
-                    var remaining = (int)Math.Max(0, (deadline - DateTime.UtcNow).TotalMilliseconds);
-                    if (remaining == 0)
-                    {
-                        item = default!;
-                        return false;
-                    }
-
-                    // Wait might return earlier due to Pulse; loop will re-check conditions
-                    Monitor.Wait(_lock, remaining);
+                    item = default!;
+                    return false;
                 }
+
+                return _channel.Reader.TryRead(out item!);
+            }
+            catch (OperationCanceledException)
+            {
+                // Timeout expired — normal return, not an error.
+                item = default!;
+                return false;
             }
         }
 
@@ -98,11 +115,10 @@ namespace LogWatcher.Core.Backpressure
         /// </summary>
         public void Stop()
         {
-            lock (_lock)
-            {
-                _stopped = true;
-                Monitor.PulseAll(_lock);
-            }
+            _stopped = true;
+            // Completing the writer causes WaitToReadAsync to return false once the
+            // channel is empty, unblocking all blocked TryDequeue callers (BP-005).
+            _channel.Writer.TryComplete();
         }
 
         /// <summary>Number of items successfully published to the bus.</summary>
@@ -113,15 +129,6 @@ namespace LogWatcher.Core.Backpressure
         /// <summary>Returns the current depth of the internal queue.
         /// This value is snapshot-based and may change immediately after being read.
         /// </summary>
-        public int Depth
-        {
-            get
-            {
-                lock (_lock)
-                {
-                    return _queue.Count;
-                }
-            }
-        }
+        public int Depth => _channel.Reader.Count;
     }
 }
