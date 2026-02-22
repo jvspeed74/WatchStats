@@ -57,7 +57,12 @@ namespace LogWatcher.Core.Backpressure
                 return true;
             }
 
-            // TryWrite returned false while not stopped: bus is full, drop the incoming item.
+            // TryWrite returns false for two reasons: bus full, OR writer completed (Stop raced).
+            // Re-read _stopped to distinguish — if Stop() completed between the first check and
+            // TryWrite, don't count this as a capacity drop (it was a post-stop publish).
+            if (_stopped)
+                return false;
+
             Interlocked.Increment(ref _dropped);
             return false;
         }
