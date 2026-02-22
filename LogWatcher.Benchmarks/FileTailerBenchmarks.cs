@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+
 using LogWatcher.Core.Processing.Tailing;
 
 namespace LogWatcher.Benchmarks;
@@ -8,7 +9,7 @@ public class FileTailerBenchmarks
 {
     private FileTailer _tailer = null!;
     private string _filePath = string.Empty;
-    private long _offset1MB;
+    private long _offset1Mb;
 
     [GlobalSetup]
     public void Setup()
@@ -24,7 +25,7 @@ public class FileTailerBenchmarks
         while (fs.Length < targetBytes)
             fs.Write(line);
 
-        _offset1MB = fs.Length; // used by NoNewData benchmark
+        _offset1Mb = fs.Length; // used by NoNewData benchmark
     }
 
     [GlobalCleanup]
@@ -48,7 +49,7 @@ public class FileTailerBenchmarks
     [Benchmark]
     public TailReadStatus ReadAppended_NoNewData()
     {
-        var offset = _offset1MB;
+        var offset = _offset1Mb;
         return _tailer.ReadAppended(_filePath, ref offset, static _ => { }, out _);
     }
 }

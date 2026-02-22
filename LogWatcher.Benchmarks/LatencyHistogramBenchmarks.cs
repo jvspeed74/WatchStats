@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+
 using LogWatcher.Core.Statistics;
 
 namespace LogWatcher.Benchmarks;

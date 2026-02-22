@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+
 using LogWatcher.Core.FileManagement;
 using LogWatcher.Core.Processing.Scanning;
 

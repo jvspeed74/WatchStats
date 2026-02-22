@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+
 using LogWatcher.Core.Backpressure;
 using LogWatcher.Core.Ingestion;
 
@@ -10,7 +11,7 @@ public class BoundedEventBusBenchmarks
     // Large enough that the benchmark never fills it during a normal run.
     private BoundedEventBus<FsEvent> _bus = null!;
 
-    // Small bus used to measure publish behaviour when the bus is at capacity.
+    // Small bus used to measure publish behavior when the bus is at capacity.
     private BoundedEventBus<FsEvent> _fullBus = null!;
 
     private FsEvent _event;
