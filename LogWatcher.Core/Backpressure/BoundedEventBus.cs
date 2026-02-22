@@ -114,6 +114,15 @@ namespace LogWatcher.Core.Backpressure
                 item = default;
                 return false;
             }
+            catch (ThreadInterruptedException)
+            {
+                // Thread.Interrupt() was called (e.g. by ProcessingCoordinator.Stop() when
+                // the join timeout expires). Re-set the interrupt flag so the calling thread's
+                // exit logic can observe it, then return false so WorkerLoop can exit cleanly.
+                Thread.CurrentThread.Interrupt();
+                item = default;
+                return false;
+            }
         }
 
         /// <summary>
