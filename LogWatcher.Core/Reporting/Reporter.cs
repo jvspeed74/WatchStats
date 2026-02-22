@@ -19,6 +19,7 @@ namespace LogWatcher.Core.Reporting
         private readonly TimeSpan _ackTimeout;
         private Thread? _thread;
         private volatile bool _stopping;
+        private PeriodicTimer? _timer;
 
         // snapshot reused across reports
         private readonly GlobalSnapshot _snapshot;
@@ -68,6 +69,7 @@ namespace LogWatcher.Core.Reporting
             _lastGen2 = GC.CollectionCount(2);
 
             _stopping = false;
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(_intervalSeconds));
             _thread = new Thread(ReporterLoop) { IsBackground = true, Name = "reporter" };
             _thread.Start();
         }
@@ -77,6 +79,7 @@ namespace LogWatcher.Core.Reporting
         /// </summary>
         public void Stop()
         {
+            _timer?.Dispose();
             _stopping = true;
             try
             {
@@ -95,7 +98,8 @@ namespace LogWatcher.Core.Reporting
 
             while (!_stopping)
             {
-                Thread.Sleep(TimeSpan.FromSeconds(_intervalSeconds));
+                if (!_timer!.WaitForNextTickAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult())
+                    break;
 
                 var nowTicks = sw.ElapsedTicks;
                 double elapsedSeconds = (nowTicks - lastTicks) / (double)Stopwatch.Frequency;
