@@ -6,78 +6,7 @@ Rules evaluated against: `.github/instructions/dotnet.instructions.md`
 
 ## Violations
 
-### BCL — Bounded producer/consumer queue: `Queue<T>` + `Monitor` instead of `Channel.CreateBounded<T>`
-
-**File:** `Backpressure/BoundedEventBus.cs`
-
-```csharp
-private readonly Queue<T> _queue = new Queue<T>();
-private readonly object _lock = new object();
-// ...
-lock (_lock) { _queue.Enqueue(item); Monitor.Pulse(_lock); }
-Monitor.Wait(_lock, remaining);
-```
-
-Rule (BCL table): *"Bounded producer/consumer queue | `Queue<T>` + `Monitor` | `Channel.CreateBounded<T>`"*  
-Prohibited by Default table: *"`Queue<T>` + `Monitor` bus | Hand-rolled bounded queue | `Channel.CreateBounded<T>`"*
-
----
-
-### BCL — `DateTime.UtcNow` for deadline/elapsed calculation
-
-**File:** `Backpressure/BoundedEventBus.cs`
-
-```csharp
-var deadline = DateTime.UtcNow + TimeSpan.FromMilliseconds(Math.Max(0, timeoutMs));
-// ...
-var remaining = (int)Math.Max(0, (deadline - DateTime.UtcNow).TotalMilliseconds);
-```
-
-`DateTime.UtcNow` is not monotonic and can drift under NTP clock adjustments.
-
-Rule: *"NEVER use `DateTime.UtcNow` for elapsed time or deadline calculations — not monotonic, drifts under NTP. Use `Stopwatch.GetTimestamp()` or `Environment.TickCount64`."*  
-Prohibited by Default table: *"`DateTime.UtcNow` for elapsed time | Non-monotonic time for deadlines | `Stopwatch` / `Environment.TickCount64`"*
-
----
-
-### BCL — `static ReadOnlySpan<byte>` property returning `new byte[]` (allocates on every access)
-
-**File:** `Processing/Parsing/LogParser.cs`
-
-```csharp
-private static ReadOnlySpan<byte> LatencyPrefix => new byte[]
-{
-    (byte)'l', (byte)'a', (byte)'t', (byte)'e', (byte)'n', (byte)'c', (byte)'y', (byte)'_', (byte)'m',
-    (byte)'s', (byte)'='
-};
-```
-
-This allocates a new `byte[]` on every invocation.
-
-Rule: *"NEVER declare `static ReadOnlySpan<byte>` as a property — `=> new byte[]` allocates on every call. Use `"value"u8` directly or `static readonly byte[]`."*  
-Prohibited by Default table: *"`static ReadOnlySpan<byte>` property | `=> new byte[] { ... }` | `"value"u8` or `static readonly byte[]`"*  
-Should be: `private static ReadOnlySpan<byte> LatencyPrefix => "latency_ms="u8;`
-
----
-
 ### BCL — Hand-rolled span byte search instead of `span.IndexOf(value)`
-
-**File:** `Processing/Parsing/LogParser.cs`
-
-```csharp
-private static int IndexOfByte(ReadOnlySpan<byte> span, byte value)
-{
-    for (int i = 0; i < span.Length; i++)
-        if (span[i] == value)
-            return i;
-    return -1;
-}
-```
-
-The FIXME comment in the file acknowledges this: `// FIXME: Replace with ReadOnlySpan<byte>.IndexOf()`.
-
-Rule (BCL table): *"Span byte search | hand-rolled `for` loop | `span.IndexOf(value)`"*  
-Prohibited by Default table: *"Hand-rolled span/byte search | Manual loops for BCL operations | `span.IndexOf`, `MemoryExtensions`"*
 
 **File:** `Processing/Scanning/Utf8LineScanner.cs`
 
@@ -97,94 +26,8 @@ for (int i = start; i < chunk.Length; i++)
 
 Should be replaced with `chunk.IndexOf((byte)'\n')`.
 
----
-
-### BCL — Hand-rolled span subsequence search instead of `span.IndexOf(needle)`
-
-**File:** `Processing/Parsing/LogParser.cs`
-
-```csharp
-private static int IndexOfSubsequence(ReadOnlySpan<byte> haystack, ReadOnlySpan<byte> needle)
-{
-    for (int i = 0; i <= haystack.Length - needle.Length; i++)
-    {
-        bool ok = true;
-        for (int j = 0; j < needle.Length; j++) { ... }
-        if (ok) return i;
-    }
-    return -1;
-}
-```
-
-A TODO in the file acknowledges the O(n×m) complexity.
-
-Rule (BCL table): *"Span subsequence search | hand-rolled O(n×m) loop | `span.IndexOf(needle)` / `MemoryExtensions.IndexOf`"*  
+Rule (BCL table): *"Span byte search | hand-rolled `for` loop | `span.IndexOf(value)`"*  
 Prohibited by Default table: *"Hand-rolled span/byte search | Manual loops for BCL operations | `span.IndexOf`, `MemoryExtensions`"*
-
----
-
-### BCL — Hand-rolled case-insensitive span compare instead of `MemoryExtensions.Equals`
-
-**File:** `Processing/Parsing/LogParser.cs`
-
-```csharp
-private static bool EqualsIgnoreCaseAscii(ReadOnlySpan<byte> left, string right)
-{
-    if (left.Length != right.Length) return false;
-    for (int i = 0; i < left.Length; i++)
-    {
-        byte lb = left[i];
-        char rc = right[i];
-        if (lb >= (byte)'a' && lb <= (byte)'z') lb = (byte)(lb - 32);
-        if (lb != (byte)rc) return false;
-    }
-    return true;
-}
-```
-
-Rule (BCL table): *"Case-insensitive span compare | byte-by-byte compare | `MemoryExtensions.Equals(span, "VALUE"u8, StringComparison.OrdinalIgnoreCase)`"*
-
----
-
-### BCL — UTF-8 integer parsing via digit accumulation loop instead of `Utf8Parser.TryParse`
-
-**File:** `Processing/Parsing/LogParser.cs`
-
-```csharp
-int i = 0;
-long acc = 0;
-bool any = false;
-while (i < valSpan.Length)
-{
-    byte b = valSpan[i];
-    if (b < (byte)'0' || b > (byte)'9') break;
-    any = true;
-    acc = acc * 10 + (b - (byte)'0');
-    ...
-    i++;
-}
-```
-
-Rule (BCL table): *"UTF-8 integer parsing | digit accumulation loop | `Utf8Parser.TryParse`"*  
-Prohibited by Default table: *"Hand-rolled UTF-8 integer parse | Digit accumulation | `Utf8Parser.TryParse`"*
-
----
-
-### Language — Manual collection initialization → collection expressions
-
-**File:** `Processing/Parsing/LogParser.cs`
-
-```csharp
-private static readonly string[] IsoFormats = new[]
-{
-    "yyyy-MM-ddTHH:mm:ssK",
-    "yyyy-MM-ddTHH:mm:ss.fffK",
-    "yyyy-MM-ddTHH:mm:ss.fffffffK"
-};
-```
-
-Rule: *"Manual collection initialization → collection expressions"*  
-Should be: `private static readonly string[] IsoFormats = ["yyyy-MM-ddTHH:mm:ssK", "yyyy-MM-ddTHH:mm:ss.fffK", "yyyy-MM-ddTHH:mm:ss.fffffffK"];`
 
 ---
 
@@ -286,13 +129,14 @@ Rule (Allocation Coherence): *"In per-chunk, per-line, or per-interval hot paths
 
 ### Concurrency — `volatile` keyword instead of `Volatile.Read` / `Volatile.Write`
 
-**Files:** `Processing/ProcessingCoordinator.cs`, `Reporting/Reporter.cs`
+**Files:** `Processing/ProcessingCoordinator.cs`, `Reporting/Reporter.cs`, `Backpressure/BoundedEventBus.cs`
 
 ```csharp
 private volatile bool _stopping;   // ProcessingCoordinator
 private volatile bool _stopping;   // Reporter
+private volatile bool _stopped;    // BoundedEventBus
 ```
 
-The concurrency primitives table prescribes `Volatile.Read` / `Volatile.Write` for non-blocking flag visibility across threads. The `volatile` keyword predates this API and is not listed as the preferred approach. `FileState.cs` in the same project already uses `Volatile.Read`/`Volatile.Write` consistently — the two classes are inconsistent with the rest of the codebase.
+The concurrency primitives table prescribes `Volatile.Read` / `Volatile.Write` for non-blocking flag visibility across threads. The `volatile` keyword predates this API and is not listed as the preferred approach. `FileState.cs` in the same project already uses `Volatile.Read`/`Volatile.Write` consistently — these three classes are inconsistent with the rest of the codebase.
 
 Rule (Concurrency table): *"Non-blocking flag visibility across threads | `Volatile.Read` / `Volatile.Write`"*
