@@ -155,11 +155,9 @@ public class ReporterTests
     {
         // When a worker fails to acknowledge a swap within the timeout the reporter
         // must proceed with available data and log a warning — it must not crash or block.
-        var originalErr = Console.Error;
-        var originalOut = Console.Out;
         using var errWriter = new StringWriter();
         using var outWriter = new StringWriter();
-        Console.SetError(errWriter);
+        var originalOut = Console.Out;
         Console.SetOut(outWriter);
         try
         {
@@ -167,8 +165,9 @@ public class ReporterTests
             var ws = new WorkerStats();
             // Worker never acknowledges swaps because it never calls AcknowledgeSwapIfRequested
             var workers = new[] { ws };
-            // Extremely short ack timeout to force a timeout on every interval
-            var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(1));
+            // Extremely short ack timeout to force a timeout on every interval.
+            // errWriter is injected directly — avoids Console.Error race conditions across parallel tests.
+            var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(1), errorOutput: errWriter);
             reporter.Start();
             Thread.Sleep(2500); // allow at least one interval with a forced ack timeout
             reporter.Stop();
@@ -182,7 +181,6 @@ public class ReporterTests
         }
         finally
         {
-            Console.SetError(originalErr);
             Console.SetOut(originalOut);
         }
     }

@@ -17,6 +17,7 @@ namespace LogWatcher.Core.Reporting
         private readonly int _topK;
         private readonly int _intervalSeconds;
         private readonly TimeSpan _ackTimeout;
+        private readonly TextWriter _errorOutput;
         private Thread? _thread;
         private bool _stopping;
         private PeriodicTimer? _timer;
@@ -38,8 +39,9 @@ namespace LogWatcher.Core.Reporting
         /// <param name="topK">Number of top messages to compute in each report; clamped to at least 1.</param>
         /// <param name="intervalSeconds">Report interval in seconds; clamped to at least 1.</param>
         /// <param name="ackTimeout">Timeout to wait for worker swap acknowledgements. If null, defaults to max(1s, intervalSeconds).</param>
+        /// <param name="errorOutput">TextWriter used for diagnostic warnings. If null, defaults to <see cref="Console.Error"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="workers"/> or <paramref name="bus"/> is null.</exception>
-        public Reporter(WorkerStats[] workers, BoundedEventBus<FsEvent> bus, int topK = 10, int intervalSeconds = 2, TimeSpan? ackTimeout = null)
+        public Reporter(WorkerStats[] workers, BoundedEventBus<FsEvent> bus, int topK = 10, int intervalSeconds = 2, TimeSpan? ackTimeout = null, TextWriter? errorOutput = null)
         {
             _workers = workers ?? throw new ArgumentNullException(nameof(workers));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
@@ -47,6 +49,7 @@ namespace LogWatcher.Core.Reporting
             _intervalSeconds = Math.Max(1, intervalSeconds);
             // default ack timeout is 1.5x the reporting interval to tolerate busy workers
             _ackTimeout = ackTimeout ?? TimeSpan.FromSeconds(Math.Max(1, _intervalSeconds) * 1.5);
+            _errorOutput = errorOutput ?? Console.Error;
             _snapshot = new GlobalSnapshot(_topK);
 
             // initialize baselines to zero here; real baseline captured when Start() is called so tests can call BuildSnapshotAndFrame without timing side-effects
@@ -87,7 +90,7 @@ namespace LogWatcher.Core.Reporting
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Reporter.Stop join error: {ex}");
+                _errorOutput.WriteLine($"Reporter.Stop join error: {ex}");
             }
         }
 
@@ -122,7 +125,7 @@ namespace LogWatcher.Core.Reporting
                     catch (OperationCanceledException) { }
                 });
                 if (acked != _workers.Length)
-                    Console.Error.WriteLine($"Reporter: swap wait timed out (acked={acked} of {_workers.Length})");
+                    _errorOutput.WriteLine($"Reporter: swap wait timed out (acked={acked} of {_workers.Length})");
 
                 // Merge/Frame build
                 var frame = BuildSnapshotAndFrame();
@@ -139,7 +142,7 @@ namespace LogWatcher.Core.Reporting
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Reporter final report error: {ex}");
+                _errorOutput.WriteLine($"Reporter final report error: {ex}");
             }
         }
 
