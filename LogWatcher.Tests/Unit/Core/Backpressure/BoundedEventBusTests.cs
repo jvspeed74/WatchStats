@@ -120,4 +120,88 @@ public class BoundedEventBusTests
         Assert.Equal(items, bus.PublishedCount);
         Assert.Equal(0, bus.DroppedCount);
     }
+
+    [Fact]
+    [Invariant("BP-003")]
+    [Invariant("BP-005")]
+    public void Publish_AfterStop_ReturnsFalseAndDoesNotIncrementDropped()
+    {
+        // Post-Stop publishes must not be counted as capacity drops (BP-003):
+        // a stopped bus is not a full bus.
+        var bus = new BoundedEventBus<int>(10);
+        bus.Publish(1);
+        bus.Stop();
+
+        var result = bus.Publish(2);
+
+        Assert.False(result);
+        Assert.Equal(0, bus.DroppedCount); // Stop is not a capacity event
+        Assert.Equal(1, bus.PublishedCount);
+    }
+
+    [Fact]
+    [Invariant("BP-005")]
+    public void Stop_ItemsPublishedBeforeStop_CanStillBeDrained()
+    {
+        // BP-005: "may still drain remaining items already in the queue before returning false"
+        var bus = new BoundedEventBus<int>(10);
+        bus.Publish(1);
+        bus.Publish(2);
+        bus.Stop();
+
+        Assert.True(bus.TryDequeue(out var a, 0));
+        Assert.True(bus.TryDequeue(out var b, 0));
+        Assert.Equal(1, a);
+        Assert.Equal(2, b);
+        // Queue now empty and stopped — next dequeue must return false
+        Assert.False(bus.TryDequeue(out _, 0));
+    }
+
+    [Fact]
+    [Invariant("BP-005")]
+    public void Stop_CalledTwice_DoesNotThrow()
+    {
+        var bus = new BoundedEventBus<int>(1);
+        bus.Stop();
+        var ex = Record.Exception(() => bus.Stop());
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void TryDequeue_EmptyBus_ReturnsFalseAfterTimeout()
+    {
+        var bus = new BoundedEventBus<int>(10);
+        var sw = Stopwatch.StartNew();
+        var result = bus.TryDequeue(out _, 50);
+        sw.Stop();
+
+        Assert.False(result);
+        // Must have waited approximately the timeout (at least 40 ms) and not forever
+        Assert.True(sw.ElapsedMilliseconds >= 40, "TryDequeue must wait for timeout before returning");
+        Assert.True(sw.ElapsedMilliseconds < 500, "TryDequeue must not block indefinitely");
+    }
+
+    [Fact]
+    public void TryDequeue_ZeroTimeout_ReturnsImmediatelyWhenEmpty()
+    {
+        var bus = new BoundedEventBus<int>(10);
+        var sw = Stopwatch.StartNew();
+        var result = bus.TryDequeue(out _, 0);
+        sw.Stop();
+
+        Assert.False(result);
+        Assert.True(sw.ElapsedMilliseconds < 50, "Zero-timeout TryDequeue must return immediately");
+    }
+
+    [Fact]
+    public void Constructor_ZeroCapacity_ThrowsArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new BoundedEventBus<int>(0));
+    }
+
+    [Fact]
+    public void Constructor_NegativeCapacity_ThrowsArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new BoundedEventBus<int>(-1));
+    }
 }
