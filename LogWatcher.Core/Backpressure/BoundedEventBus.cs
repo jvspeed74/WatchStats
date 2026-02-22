@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Channels;
 
 namespace LogWatcher.Core.Backpressure
@@ -73,15 +74,15 @@ namespace LogWatcher.Core.Backpressure
         /// <param name="item">On success receives the dequeued item; when false it is set to default.</param>
         /// <param name="timeoutMs">Maximum wait time in milliseconds (clamped to minimum 0).</param>
         /// <returns>True when an item was dequeued; false on timeout or when the bus is stopped and empty.</returns>
-        public bool TryDequeue(out T item, int timeoutMs)
+        public bool TryDequeue([MaybeNullWhen(false)] out T item, int timeoutMs)
         {
             // Fast path: item already available — no allocation, no blocking.
-            if (_channel.Reader.TryRead(out item!))
+            if (_channel.Reader.TryRead(out item))
                 return true;
 
             if (timeoutMs <= 0)
             {
-                item = default!;
+                item = default;
                 return false;
             }
 
@@ -101,16 +102,16 @@ namespace LogWatcher.Core.Backpressure
 
                 if (!hasData)
                 {
-                    item = default!;
+                    item = default;
                     return false;
                 }
 
-                return _channel.Reader.TryRead(out item!);
+                return _channel.Reader.TryRead(out item);
             }
             catch (OperationCanceledException)
             {
                 // Timeout expired — normal return, not an error.
-                item = default!;
+                item = default;
                 return false;
             }
         }
