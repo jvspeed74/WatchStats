@@ -30,4 +30,8 @@
         <Folder Include="Stress\"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <EmbeddedResource Include="..\docs\invariants.md"/>
+    </ItemGroup>
+
 </Project>
