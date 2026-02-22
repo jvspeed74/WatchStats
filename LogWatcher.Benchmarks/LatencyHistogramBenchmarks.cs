@@ -1,10 +1,12 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 
 using LogWatcher.Core.Statistics;
 
 namespace LogWatcher.Benchmarks;
 
 [MemoryDiagnoser]
+[SimpleJob(launchCount: 1, warmupCount: 10, iterationCount: 20, invocationCount: 1)]
 public class LatencyHistogramBenchmarks
 {
     private LatencyHistogram _histogram = null!;
@@ -23,7 +25,14 @@ public class LatencyHistogramBenchmarks
     }
 
     [IterationSetup(Target = nameof(MergeFrom_FullHistogram))]
-    public void ResetHistogram() => _histogram = new LatencyHistogram();
+    public void ResetHistogram()
+    {
+        _source = new LatencyHistogram();
+        for (var ms = 0; ms <= 10_000; ms++)
+            _source.Add(ms);
+        _source.Add(10_001); // overflow bin
+        _histogram = new LatencyHistogram();
+    }
 
     /// <summary>
     /// O(1) add to a single bin. Expected: 0 B allocated.
