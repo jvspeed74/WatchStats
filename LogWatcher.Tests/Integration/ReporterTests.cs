@@ -39,7 +39,7 @@ public class ReporterTests
             w.AcknowledgeSwapIfRequested();
         }
 
-        var reporter = new Reporter(workers, bus, 2, 1);
+        var reporter = new Reporter(workers, bus, 2, interval: TimeSpan.FromSeconds(1));
 
         // Act
         var snap = reporter.BuildSnapshotAndFrame();
@@ -78,7 +78,7 @@ public class ReporterTests
         workers[0].RequestSwap();
         workers[0].AcknowledgeSwapIfRequested();
 
-        var reporter = new Reporter(workers, bus, 2, 1);
+        var reporter = new Reporter(workers, bus, 2, interval: TimeSpan.FromSeconds(1));
         var snap = reporter.BuildSnapshotAndFrame();
 
         Assert.Equal(2, snap.TopKMessages.Count);
@@ -103,7 +103,7 @@ public class ReporterTests
         {
             var bus = new BoundedEventBus<FsEvent>(10);
             var workers = new[] { new WorkerStats() };
-            var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(100));
+            var reporter = new Reporter(workers, bus, 1, interval: TimeSpan.FromMilliseconds(100), ackTimeout: TimeSpan.FromMilliseconds(100));
             reporter.Start();
             Thread.Sleep(1500); // allow at least one interval report
             reporter.Stop();
@@ -133,7 +133,7 @@ public class ReporterTests
             var bus = new BoundedEventBus<FsEvent>(10);
             var workers = new[] { new WorkerStats() };
             // 1-second interval; we stop after 100 ms so the thread exits cleanly within the join timeout
-            var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(100));
+            var reporter = new Reporter(workers, bus, 1, interval: TimeSpan.FromSeconds(1), ackTimeout: TimeSpan.FromMilliseconds(100));
             reporter.Start();
             Thread.Sleep(100);
             reporter.Stop(); // must emit final report with elapsed=0.00 after loop exits
@@ -167,9 +167,9 @@ public class ReporterTests
             var workers = new[] { ws };
             // Extremely short ack timeout to force a timeout on every interval.
             // errWriter is injected directly — avoids Console.Error race conditions across parallel tests.
-            var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(1), errorOutput: errWriter);
+            var reporter = new Reporter(workers, bus, 1, interval: TimeSpan.FromMilliseconds(100), ackTimeout: TimeSpan.FromMilliseconds(1), errorOutput: errWriter);
             reporter.Start();
-            Thread.Sleep(2500); // allow at least one interval with a forced ack timeout
+            Thread.Sleep(2500); // allow multiple fast intervals with forced ack timeouts
             reporter.Stop();
 
             var errOutput = errWriter.ToString();
@@ -193,7 +193,7 @@ public class ReporterTests
         // Volatile.Read(ref _stopping) in the loop thread, causing it to exit promptly.
         var bus = new BoundedEventBus<FsEvent>(10);
         var workers = new[] { new WorkerStats() };
-        var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(50));
+        var reporter = new Reporter(workers, bus, 1, interval: TimeSpan.FromSeconds(1), ackTimeout: TimeSpan.FromMilliseconds(50));
 
         reporter.Start();
         reporter.Stop(); // must not hang
@@ -211,7 +211,7 @@ public class ReporterTests
         // A second Stop() after the thread has already exited must not throw or hang.
         var bus = new BoundedEventBus<FsEvent>(10);
         var workers = new[] { new WorkerStats() };
-        var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(50));
+        var reporter = new Reporter(workers, bus, 1, interval: TimeSpan.FromSeconds(1), ackTimeout: TimeSpan.FromMilliseconds(50));
 
         reporter.Start();
         reporter.Stop();
@@ -231,7 +231,7 @@ public class ReporterTests
         {
             var bus = new BoundedEventBus<FsEvent>(10);
             var workers = new[] { new WorkerStats() };
-            var reporter = new Reporter(workers, bus, 1, 1, ackTimeout: TimeSpan.FromMilliseconds(50));
+            var reporter = new Reporter(workers, bus, 1, interval: TimeSpan.FromMilliseconds(100), ackTimeout: TimeSpan.FromMilliseconds(50));
 
             // First cycle
             reporter.Start();
